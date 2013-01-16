@@ -1,7 +1,6 @@
 // We assume we're running at document idle, meaning we can process the content
 // straight away.
 
-(function() {
 "use strict";
 
 var keys = Object.keys.bind(Object);
@@ -52,7 +51,7 @@ DataSet.prototype = {
     ret.top.sort(function(a, b) {
       return b.value - a.value;
     });
-    ret.top.length = Math.min(this.total, this.maxSummaryItems);
+    ret.top.length = Math.min(ret.top.length, this.maxSummaryItems);
 
     // Hook for extended summary generation.
     if (typeof this["summarize"] == "function") {
@@ -62,7 +61,12 @@ DataSet.prototype = {
     return ret;
   },
   toJSON: function() {
-    return this.summary;
+    return {
+      data: this.data,
+      total: this.total,
+      metaData: this.metaData,
+      summary: this.summary
+    };
   }
 };
 
@@ -89,7 +93,6 @@ var schemaDotOrgItems = function(elements) {
     if (av) {
       var type = e.getAttribute("itemtype");
       if (type) {
-        console.log(type);
         type = type.split("/").pop();
       }
       ret.increment(type || "unknown");
@@ -169,42 +172,3 @@ var microformatItems = function(elements) {
 
   return ret;
 };
-
-var getStats = function(elements) {
-  return {
-    tags:               tags(elements),
-    schemaDotOrgItems:  schemaDotOrgItems(elements),
-    microformatItems:   microformatItems(elements),
-  };
-};
-
-var report = function(data) {
-  // Display it here/log it.
-  forIn(data, function(key, set) {
-    var s = set.summary;
-    console.log("Total", key, ":", set.total);
-    if (set.total) {
-      console.log("  Top", s.top.length, key);
-      s.top.forEach(function(o) {
-        console.log("    ", o.key, ":", o.value, "("+((o.value/set.total) * 100).toFixed(1)+"%)");
-      });
-
-      console.log("  Metadata");
-      s.metaData.forEach(function(o) {
-        console.log("    ", o.key, ":", o.value);
-      });
-    }
-  });
-
-  // Send the data to our background page:
-  chrome.extension.sendMessage(
-    data,
-    function(response) { console.log(response); }
-  );
-}
-
-report(
-  getStats(
-    elements()));
-
-})();

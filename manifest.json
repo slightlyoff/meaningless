@@ -3,14 +3,14 @@
   "version": "0.1",
   "description": "You keep using that word. I do not think it means what you think it means.",
   "background": {
-    "scripts": [ "background.js" ]
+    "scripts": [ "meaningless.js", "background.js" ]
   },
   "content_scripts": [
     {
       "run_at": "document_idle",
       "matches": [ "http://*/*", "https://*/*" ],
       "css": [ "meaningless.css" ],
-      "js":  [ "meaningless.js" ]
+      "js":  [ "meaningless.js", "content.js" ]
     }
   ],
   "manifest_version": 2
