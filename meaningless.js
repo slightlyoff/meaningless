@@ -31,14 +31,25 @@ var DataSet = function() {
   this.total = 0;
 }
 DataSet.prototype = {
-  incrementMeta: function(name) {
-    this.metaData[name] = (typeof this.metaData[name] == "undefined") ?
-                      1 : (this.metaData[name] + 1);
+  merge: function(dsOrObj) {
+    forIn(dsOrObj.data, function(key, value) {
+      this.increment(key, value);
+    }, this);
+    forIn(dsOrObj.metaData, function(key, value) {
+      this.incrementMeta(key, value);
+    }, this);
   },
-  increment: function(name) {
-    this.total++;
+
+  incrementMeta: function(name, by) {
+    by = by||1;
+    this.metaData[name] = (typeof this.metaData[name] == "undefined") ?
+                      by : (this.metaData[name] + by);
+  },
+  increment: function(name, by) {
+    by = by||1;
+    this.total += by;
     this.data[name] = (typeof this.data[name] == "undefined") ?
-                      1 : (this.data[name] + 1);
+                      by : (this.data[name] + by);
   },
   maxSummaryItems: 10,
   get summary() {
@@ -68,6 +79,21 @@ DataSet.prototype = {
       summary: this.summary
     };
   }
+};
+
+var PageDataGroup = function(elements) {
+  this.tags = new DataSet();
+  this.schemaDotOrgItems = new DataSet();
+  this.microformatItems = new DataSet();
+
+  if (elements) {
+    this.tags = tags(elements);
+    this.schemaDotOrgItems = schemaDotOrgItems(elements);
+    this.microformatItems = microformatItems(elements);
+  }
+};
+PageDataGroup.prototype = {
+  // ...
 };
 
 var elements = function() {
