@@ -14,13 +14,21 @@ AggregatePageData.prototype = Object.create(PageDataGroup.prototype, {
     configruable: true,
     value: function(data, sender) {
       this.pages++;
+      this.tags.merge(data.tags);
+      this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
+      this.microformatItems.merge(data.microformatItems);
     }
   },
   summary: {
     enumerable: false,
     configruable: true,
     get: function() {
-      return {};
+      return {
+        pages: this.pages,
+        tags: this.tags,
+        schemaDotOrgItems: this.schemaDotOrgItems,
+        microformatItems: this.microformatItems,
+      };
     }
   }
 });

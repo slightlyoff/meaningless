@@ -106,7 +106,7 @@ var tags = function(elements) {
     var tn = e.tagName.toLowerCase()
     ret.increment(tn);
     ret.incrementMeta(
-      (e instanceof HTMLUnknownElement) ? "standard" : "nonStandard");
+      (e instanceof HTMLUnknownElement) ? "nonStandard" : "standard");
   });
   return ret;
 };
