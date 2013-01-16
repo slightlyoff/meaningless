@@ -111,26 +111,31 @@ var tags = function(elements) {
   return ret;
 };
 
-var schemaDotOrgItems = function(elements) {
-  // Look for elements with an "itemscope". Disambiguate by "itemtype".
-  var ret = new DataSet();
-  elements.forEach(function(e) {
-    var av = (e.getAttribute("itemscope")||"").toLowerCase();
-    if (av) {
-      var type = e.getAttribute("itemtype");
-      if (type) {
-        type = type.split("/").pop();
-      }
-      ret.increment(type || "unknown");
+var schemaDotOrgType = function(e) {
+  var type;
+
+  var av = (e.getAttribute("itemscope")||"").toLowerCase();
+  if (av) {
+    type = e.getAttribute("itemtype");
+    if (type) {
+      type = (type.split("/").pop() || "unknown");
     }
-  });
-  return ret;
+  }
+  return type;
 };
 
-var microformatItems = function(elements) {
-  // Look for class names with the right structure.
-  var ret = new DataSet();
+var schemaDotOrgItems = function(elements) {
+  var dataSet = new DataSet();
+  elements.forEach(function(e) {
+    var t = microFormatType(e);
+    if (t) {
+      dataSet.increment(t);
+    }
+  });
+  return dataSet;
+};
 
+var microFormatType = function(el) {
   // FIXME(slightyoff): should be trying to do a tighter fit for some of the
   // parent/child relationships. I.e., only match geo if there's a child with a
   // "latitude" or "longitude" class.
@@ -172,29 +177,39 @@ var microformatItems = function(elements) {
     );
   };
 
-  var v1Test = function(dataSet, el) {
-    forIn(v1Tests, function(name, test) {
-      forIn(test, function(attr, values) {
-        if (has(el, attr, values)) {
-          dataSet.increment(name);
-        }
-      });
-    });
-  };
+  var type;
 
-  var v2Test = function(dataSet, el) {
-    // Look for "h-*" classes
-    toArray(el.classList).some(function(c) {
-      var t = (c.indexOf("h-") == 0);
-      if (t) { dataSet.increment(c); }
-      return t;
+  forIn(v1Tests, function(name, test) {
+    forIn(test, function(attr, values) {
+      if (has(el, attr, values)) {
+        type = name;
+        // dataSet.increment(name);
+      }
     });
-  };
-
-  elements.forEach(function(e) {
-    v1Test(ret, e);
-    v2Test(ret, e);
   });
 
-  return ret;
+  // Look for "h-*" classes
+  toArray(el.classList).some(function(c) {
+    var t = (c.indexOf("h-") == 0);
+    if (t) {
+      type = c;
+    }
+    return t;
+  });
+
+  return type;
+};
+
+var microformatItems = function(elements) {
+  // Look for class names with the right structure.
+  var dataSet = new DataSet();
+
+  elements.forEach(function(e) {
+    var t = microFormatType(e);
+    if (t) {
+      dataSet.increment(t);
+    }
+  });
+
+  return dataSet;
 };
