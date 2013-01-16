@@ -60,6 +60,9 @@ DataSet.prototype = {
     }
 
     return ret;
+  },
+  toJSON: function() {
+    return this.summary;
   }
 };
 
@@ -68,30 +71,12 @@ var elements = function() {
 };
 
 var tags = function(elements) {
-  var standardTags = [
-    "a", "abbr", "acronym", "address", "applet", "area", "article", "aside",
-    "audio", "b", "base", "basefont", "bdi", "bdo", "bgsound", "big", "blink",
-    "blockquote", "body", "br", "button", "canvas", "caption", "center", "cite",
-    "code", "col", "colgroup", "command", "data", "datalist", "dd", "del",
-    "details", "dfn", "dir", "div", "dl", "dt", "em", "embed", "fieldset",
-    "figcaption", "figure", "font", "footer", "form", "frame", "frameset", "h1",
-    "h2", "h3", "h4", "h5", "h6", "head", "header", "hgroup", "hr", "html", "i",
-    "iframe", "img", "input", "ins", "isindex", "kbd", "keygen", "label",
-    "legend", "li", "link", "listing", "main", "map", "mark", "marquee", "menu",
-    "meta", "nav", "nobr", "noframes", "noscript", "object", "ol", "optgroup",
-    "option", "output", "p", "param", "plaintext", "pre", "progress", "q", "rp",
-    "rt", "ruby", "s", "samp", "script", "section", "select", "small", "source",
-    "spacer", "span", "strike", "strong", "style", "sub", "summary", "sup",
-    "table", "tbody", "td", "textarea", "tfoot", "th", "thead", "time", "title",
-    "tr", "track", "tt", "u", "ul", "var", "video", "wbr", "xmp"
-  ];
-
-  var ret = new DataSet({ standard: 0, nonStandard: 0 });
+  var ret = new DataSet();
   elements.forEach(function(e) {
     var tn = e.tagName.toLowerCase()
     ret.increment(tn);
     ret.incrementMeta(
-      (standardTags.indexOf(tn) >= 0 ? "standard" : "nonStandard"));
+      (e instanceof HTMLUnknownElement) ? "standard" : "nonStandard");
   });
   return ret;
 };
@@ -193,7 +178,8 @@ var getStats = function(elements) {
   };
 };
 
-function display(data) {
+var report = function(data) {
+  // Display it here/log it.
   forIn(data, function(key, set) {
     var s = set.summary;
     console.log("Total", key, ":", set.total);
@@ -209,9 +195,15 @@ function display(data) {
       });
     }
   });
+
+  // Send the data to our background page:
+  chrome.extension.sendMessage(
+    data,
+    function(response) { console.log(response); }
+  );
 }
 
-display(
+report(
   getStats(
     elements()));
 
