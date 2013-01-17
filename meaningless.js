@@ -6,7 +6,7 @@
 var keys = Object.keys.bind(Object);
 
 var toArray = function(listLike) {
-  return Array.prototype.slice.call(listLike, 0);
+  return Array.prototype.slice.call(listLike);
 };
 
 var itemsArray = function(obj) {
