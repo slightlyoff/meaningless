@@ -8,7 +8,7 @@ var display = function(local, global) {
 };
 
 var getStats = function(elements) {
-  return new PageDataGroup(elements);
+  return new PageData(elements);
 };
 
 var report = function(pageData) {
@@ -21,6 +21,10 @@ var report = function(pageData) {
   );
 };
 
-report(
-  getStats(
-    elements()));
+// Wait a bit for ads and Ajax stuff to come in.
+var howLong = 0;
+setTimeout(function() {
+  report(
+    getStats(
+      elements()));
+}, howLong);

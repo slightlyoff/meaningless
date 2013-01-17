@@ -81,39 +81,12 @@ DataSet.prototype = {
   }
 };
 
-var PageDataGroup = function(elements) {
-  this.tags = new DataSet();
-  this.schemaDotOrgItems = new DataSet();
-  this.microformatItems = new DataSet();
-
-  if (elements) {
-    this.tags = tags(elements);
-    this.schemaDotOrgItems = schemaDotOrgItems(elements);
-    this.microformatItems = microformatItems(elements);
-  }
-};
-PageDataGroup.prototype = {
-  // ...
-};
-
 var elements = function() {
   return toArray(document.getElementsByTagName("*"));
 };
 
-var tags = function(elements) {
-  var ret = new DataSet();
-  elements.forEach(function(e) {
-    var tn = e.tagName.toLowerCase()
-    ret.increment(tn);
-    ret.incrementMeta(
-      (e instanceof HTMLUnknownElement) ? "nonStandard" : "standard");
-  });
-  return ret;
-};
-
 var schemaDotOrgType = function(e) {
   var type;
-
   var av = (e.getAttribute("itemscope")||"").toLowerCase();
   if (av) {
     type = e.getAttribute("itemtype");
@@ -122,17 +95,6 @@ var schemaDotOrgType = function(e) {
     }
   }
   return type;
-};
-
-var schemaDotOrgItems = function(elements) {
-  var dataSet = new DataSet();
-  elements.forEach(function(e) {
-    var t = microFormatType(e);
-    if (t) {
-      dataSet.increment(t);
-    }
-  });
-  return dataSet;
 };
 
 var microFormatType = function(el) {
@@ -200,16 +162,63 @@ var microFormatType = function(el) {
   return type;
 };
 
-var microformatItems = function(elements) {
-  // Look for class names with the right structure.
-  var dataSet = new DataSet();
+var ariaType = function(e) {
+  var type;
+  var av = (e.getAttribute("role")||"").toLowerCase();
+  if (av) { type = av; }
+  return type;
+};
 
-  elements.forEach(function(e) {
-    var t = microFormatType(e);
-    if (t) {
-      dataSet.increment(t);
-    }
-  });
+var semanticHtmlType = function(e) {
+  var semanticTags = [
+    "a", "abbr", "acronym", "address", "article", "aside", "bdi", "bdo",
+    "blockquote", "body", "button", "caption", "cite", "code", "col",
+    "colgroup", "command", "data", "datalist", "dd", "details", "dfn", "dir",
+    "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure",
+    "font", "footer", "form","h1", "h2", "h3", "h4", "h5", "h6", "header",
+    "hgroup", "hr", "input", "ins", "kbd", "keygen", "label", "legend", "li",
+    "link", "main", "mark", "menu", "meta", "nav", "noscript", "ol", "optgroup",
+    "option", "output", "p", "pre", "progress", "q", "rp", "rt", "ruby", "s",
+    "samp", "script", "section", "select", "source", "span", "strong", "style",
+    "sub", "summary", "sup", "table", "tbody", "td", "textarea", "tfoot", "th",
+    "thead", "time", "title", "tr", "track", "ul", "var", "wbr"
+ ];
+};
 
-  return dataSet;
+var PageData = function(elements) {
+  this.total = 0;
+  this.tags = new DataSet();
+  this.schemaDotOrgItems = new DataSet();
+  this.microformatItems = new DataSet();
+  this.ariaItems = new DataSet();
+
+  if (elements) {
+    this.process(elements);
+  }
+};
+PageData.prototype = {
+  process: function(elements) {
+    this.total = elements.length;
+    elements.forEach(function(e) {
+      var tn = e.tagName.toLowerCase()
+      this.tags.increment(tn);
+      this.tags.incrementMeta(
+        (e instanceof HTMLUnknownElement) ? "nonStandard" : "standard");
+
+      var mft = microFormatType(e);
+      if (mft) {
+        this.microformatItems.increment(mft);
+      }
+
+      var sdot = microFormatType(e);
+      if (sdot) {
+        this.schemaDotOrgItems.increment(sdot);
+      }
+
+      var at = ariaType(e);
+      if (at) {
+        this.ariaItems.increment(at);
+      }
+    }, this);
+  }
 };

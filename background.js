@@ -4,19 +4,21 @@
 var debug = true;
 
 var AggregatePageData = function() {
-  PageDataGroup.call(this);
+  PageData.call(this);
   this.pages = 0;
 };
-AggregatePageData.prototype = Object.create(PageDataGroup.prototype, {
+AggregatePageData.prototype = Object.create(PageData.prototype, {
   aggregate: {
     enumerable: false,
     writable: true,
     configruable: true,
     value: function(data, sender) {
       this.pages++;
+      this.total += data.total;
       this.tags.merge(data.tags);
       this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
       this.microformatItems.merge(data.microformatItems);
+      this.ariaItems.merge(data.ariaItems);
     }
   },
   summary: {
@@ -24,10 +26,12 @@ AggregatePageData.prototype = Object.create(PageDataGroup.prototype, {
     configruable: true,
     get: function() {
       return {
+        total: this.total,
         pages: this.pages,
         tags: this.tags,
         schemaDotOrgItems: this.schemaDotOrgItems,
         microformatItems: this.microformatItems,
+        ariaItems: this.ariaItems,
       };
     }
   }
