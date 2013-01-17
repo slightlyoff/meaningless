@@ -174,15 +174,20 @@ var semanticHtmlType = function(e) {
     "a", "abbr", "acronym", "address", "article", "aside", "bdi", "bdo",
     "blockquote", "body", "button", "caption", "cite", "code", "col",
     "colgroup", "command", "data", "datalist", "dd", "details", "dfn", "dir",
-    "div", "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure",
+    "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure",
     "font", "footer", "form","h1", "h2", "h3", "h4", "h5", "h6", "header",
     "hgroup", "hr", "input", "ins", "kbd", "keygen", "label", "legend", "li",
     "link", "main", "mark", "menu", "meta", "nav", "noscript", "ol", "optgroup",
     "option", "output", "p", "pre", "progress", "q", "rp", "rt", "ruby", "s",
-    "samp", "script", "section", "select", "source", "span", "strong", "style",
+    "samp", "script", "section", "select", "source", "strong", "style",
     "sub", "summary", "sup", "table", "tbody", "td", "textarea", "tfoot", "th",
     "thead", "time", "title", "tr", "track", "ul", "var", "wbr"
- ];
+  ];
+
+  var tn = e.tagName.toLowerCase();
+  if (semanticTags.indexOf(tn) >= 0) {
+    return tn;
+  }
 };
 
 var PageData = function(elements) {
@@ -191,6 +196,7 @@ var PageData = function(elements) {
   this.schemaDotOrgItems = new DataSet();
   this.microformatItems = new DataSet();
   this.ariaItems = new DataSet();
+  this.semantics = new DataSet();
 
   if (elements) {
     this.process(elements);
@@ -210,7 +216,7 @@ PageData.prototype = {
         this.microformatItems.increment(mft);
       }
 
-      var sdot = microFormatType(e);
+      var sdot = schemaDotOrgType(e);
       if (sdot) {
         this.schemaDotOrgItems.increment(sdot);
       }
@@ -219,6 +225,25 @@ PageData.prototype = {
       if (at) {
         this.ariaItems.increment(at);
       }
+
+      // Keep a running tally of the semantic content of pages: if semantic,
+      // where does it come from?
+      var augmentedSemantics = (mft || sdot || at);
+      var nativeSemantics = semanticHtmlType(e);
+      if (nativeSemantics) {
+        if (augmentedSemantics) {
+          this.semantics.increment("native + augmented");
+        } else {
+          this.semantics.increment("native");
+        }
+      } else {
+        if (augmentedSemantics) {
+          this.semantics.increment("augmented");
+        } else {
+          this.semantics.increment("unsemantic");
+        }
+      }
+
     }, this);
   }
 };

@@ -19,6 +19,7 @@ AggregatePageData.prototype = Object.create(PageData.prototype, {
       this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
       this.microformatItems.merge(data.microformatItems);
       this.ariaItems.merge(data.ariaItems);
+      this.semantics.merge(data.semantics);
     }
   },
   summary: {
@@ -32,6 +33,7 @@ AggregatePageData.prototype = Object.create(PageData.prototype, {
         schemaDotOrgItems: this.schemaDotOrgItems,
         microformatItems: this.microformatItems,
         ariaItems: this.ariaItems,
+        semantics: this.semantics,
       };
     }
   }
