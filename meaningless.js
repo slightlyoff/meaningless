@@ -237,6 +237,8 @@ PageData.prototype = {
           this.semantics.increment("native");
         }
       } else {
+        // FIXME: right now we're not counting augmented descendants of top-
+        // level semantic elements, e.g. items in a microformat list.
         if (augmentedSemantics) {
           this.semantics.increment("augmented");
         } else {
