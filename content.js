@@ -1,31 +1,39 @@
 "use strict";
 
-var display = function(local, global) {
+var display = function(global) {
+  /*
   console.log("local stats:");
   console.dir(local);
+  */
   console.log("global stats:");
   console.dir(global);
 };
 
-var send = function(elementData) {
-  // Send the data to our background page:
-  chrome.extension.sendMessage(
-    elementData,
-    function(globalData) {
-      display(elementData, globalData);
-    }
-  );
-};
+// If we're top-level, set up a persistent connection so we can display updates
+if (window === top) {
+  var port = chrome.extension.connect({name: "display"});
+  port.onMessage.addListener(display);
+}
 
-send(new ElementData(elements()));
+// Send the background page what we know aobut the page so far
+chrome.extension.sendMessage({
+  type: "pageload",
+  data: new ElementData(elements())
+});
 
-// Now register a mutation observer to capture future additions to the DOM
-// create an observer instance
+// Capture future additions to the DOM
 new WebKitMutationObserver(function(mutations) {
   mutations.forEach(function(mutation) {
-    var added = toArray(mutation.addedNodes);
-    if(added.length) {
-      send(new ElementData(added));
+    if (mutation.addedNodes.length) {
+      var added = toArray(mutation.addedNodes).filter(function(n) {
+        return n.nodeType == 1;
+      });
+      if(added.length) {
+        chrome.extension.sendMessage({
+          type: "update",
+          data: new ElementData(added)
+        });
+      }
     }
   });
 }).observe(document.documentElement, { subtree: true, childList: true });

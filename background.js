@@ -5,7 +5,8 @@ var debug = false;
 
 var AggregateElementData = function() {
   ElementData.call(this);
-  this.elementSets = 0;
+  this.updates = 0;
+  this.documents = 0;
 };
 AggregateElementData.prototype = Object.create(ElementData.prototype, {
   aggregate: {
@@ -13,7 +14,6 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
     writable: true,
     configruable: true,
     value: function(data, sender) {
-      this.elementSets ++;
       this.total += data.total;
       this.tags.merge(data.tags);
       this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
@@ -28,7 +28,8 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
     get: function() {
       return {
         total: this.total,
-        elementSets: this.elementSets,
+        documents: this.documents,
+        udpates: this.updates,
         tags: this.tags,
         schemaDotOrgItems: this.schemaDotOrgItems,
         microformatItems: this.microformatItems,
@@ -42,7 +43,8 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
 var totals = new AggregateElementData();
 
 chrome.extension.onMessage.addListener(
-  function(data, sender, sendResponse) {
+  function(msg, sender) {
+    var data = msg.data;
     if (debug) {
       console.log(sender.tab ?
                   "from a content script:" + sender.tab.url :
@@ -56,7 +58,10 @@ chrome.extension.onMessage.addListener(
         if (set.total) {
           console.log("  Top", s.top.length, key);
           s.top.forEach(function(o) {
-            console.log("    ", o.key, ":", o.value, "("+((o.value/set.total) * 100).toFixed(1)+"%)");
+            console.log("    ",
+                        o.key, ":",
+                        o.value,
+                        "("+((o.value/set.total) * 100).toFixed(1)+"%)");
           });
 
           console.log("  Metadata");
@@ -68,5 +73,29 @@ chrome.extension.onMessage.addListener(
     }
 
     totals.aggregate(data, sender);
-    sendResponse(totals.summary);
+    if (msg.type == "pageload") {
+      totals.documents++;
+    } else {
+      totals.updates++;
+    }
+
+    broadcast(totals.summary);
 });
+
+var ports = [];
+chrome.extension.onConnect.addListener(function(port) {
+  console.assert(port.name == "display");
+  ports.push(port);
+  port.onDisconnect.addListener(function() {
+    console.log("disconnected!");
+    var pi = ports.indexOf(port);
+    if (pi >= 0) {
+      // Remove from the list to broadcast to.
+      ports.splice(pi, 1);
+    }
+  });
+});
+
+var broadcast = function(data) {
+  ports.forEach(function(p) { p.postMessage(data); });
+};
