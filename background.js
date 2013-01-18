@@ -85,6 +85,7 @@ chrome.extension.onMessage.addListener(
 var ports = [];
 chrome.extension.onConnect.addListener(function(port) {
   console.assert(port.name == "display");
+  port.broadcast = true;
   ports.push(port);
   port.onDisconnect.addListener(function() {
     console.log("disconnected!");
@@ -94,8 +95,22 @@ chrome.extension.onConnect.addListener(function(port) {
       ports.splice(pi, 1);
     }
   });
+  port.onMessage.addListener(function(msg) {
+    if (msg.type == "visible") {
+      debug && console.log("active port now visible");
+      port.broadcast = true;
+    }
+    if (msg.type == "hidden") {
+      debug && console.log("active port hidden!");
+      port.broadcast = false;
+    }
+  });
 });
 
 var broadcast = function(data) {
-  ports.forEach(function(p) { p.postMessage(data); });
+  ports.forEach(function(p) {
+    if(p.broadcast) {
+      p.postMessage(data);
+    }
+  });
 };
