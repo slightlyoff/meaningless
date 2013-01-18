@@ -98,56 +98,139 @@ var schemaDotOrgType = function(e) {
 };
 
 var microFormatType = function(el) {
-  // FIXME(slightyoff): should be trying to do a tighter fit for some of the
-  // parent/child relationships. I.e., only match geo if there's a child with a
-  // "latitude" or "longitude" class.
-  var v1Tests = {
-    hCard: { class: [ "vcard" ] },
-    hCal: { class: [ "vevent" ] },
-    relLicense: { rel: [ "license" ] },
-    noFollow: { rel: [ "nofollow" ] },
-    relTag: { rel: [ "tag" ] },
-    XFN: { rel: [
+  // From: http://microformats.org/wiki/existing-classes
+  var v1Tests = [
+    { attr: "class",
+      value: [
+        "adr", "bday", "class", "key", "label", "logo", "mailer", "n", "note",
+        "org", "rev", "role", "sort-string", "tel", "title", "tz"
+      ],
+      parent: { attr: "class", value:  ["hresume"] }
+    },
+    { attr: "class", value: [
+        "affiliation", "contract", "education", "experience", "publications",
+        "skill"
+      ],
+      parent: { attr: "class", value:  ["hresume"] } },
+    { attr: "class", value: ["author"],
+      parent: { attr: "class", value:  ["hentry"] } },
+    { attr: "class", value: ["category"],
+      parent: { attr: "class", value:  ["vcard", "hreview"] } },
+    { attr: "class", value: ["country-name"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["description"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "class", value: ["dtend"],
+      parent: { attr: "class", value:  ["vevent"] } },
+    { attr: "class", value: ["dtreviewed"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "class", value: ["dtstart"],
+      parent: { attr: "class", value:  ["vevent"] } },
+    { attr: "class", value: ["entry-content"],
+      parent: { attr: "class", value:  ["hentry"] } },
+    { attr: "class", value: ["entry-summary"],
+      parent: { attr: "class", value:  ["hentry"] } },
+    { attr: "class", value: ["entry-title"],
+      parent: { attr: "class", value:  ["hatom"] } },
+    { attr: "class", value: ["email"],
+      parent: { attr: "class", value:  ["vcard", "hreview"] } },
+    { attr: "class", value: ["extended-address"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["fn"],
+      parent: { attr: "class", value:  ["vcard", "hreview"] } },
+    { attr: "class", value: ["geo"],
+      parent: { attr: "class", value:  ["vcard", "vevent"] } },
+    { attr: "class", value: ["hentry"],
+      parent: { attr: "class", value:  ["*", "hfeed"] } },
+    { attr: "class", value: [
+        "hfeed", "hresume", "hreview", "profile", "vcalendar", "xoxo", "uid",
+        "sound"
+      ],
+      parent: { attr: "class", value:  ["*"] } },
+    { attr: "class", value: ["item"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "class", value: ["latitude"],
+      parent: { attr: "class", value:  ["geo"] } },
+    { attr: "class", value: ["locality"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["location"],
+      parent: { attr: "class", value:  ["vevent"] } },
+    { attr: "class", value: ["longitude"],
+      parent: { attr: "class", value:  ["geo"] } },
+    { attr: "class", value: ["organization-name"],
+      parent: { attr: "class", value:  ["org"] } },
+    { attr: "class", value: ["organization-unit"],
+      parent: { attr: "class", value:  ["org"] } },
+    { attr: "class", value: ["permalink"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "class", value: ["photo"],
+      parent: { attr: "class", value:  ["vcard", "hreview"] } },
+    { attr: "class", value: ["post-office-box"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["postal-code"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["published"],
+      parent: { attr: "class", value:  ["hentry"] } },
+    { attr: "class", value: ["rating"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "class", value: ["region"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["reviewer"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "class", value: ["street-address"],
+      parent: { attr: "class", value:  ["adr", "value"] } },
+    { attr: "class", value: ["summary"],
+      parent: { attr: "class", value:  ["vevent", "hreview", "hresume"] } },
+    { attr: "class", value: ["type"],
+      parent: { attr: "class", value:  ["adr", "email", "tel"] } },
+    { attr: "class", value: ["updated"],
+      parent: { attr: "class", value:  ["hentry"] } },
+    { attr: "class", value: ["url"],
+      parent: { attr: "class", value:  ["vcard", "vevent", "hreview"] } },
+    { attr: "class", value: ["value"],
+      parent: { attr: "class", value:  ["adr", "email", "tel"] } },
+    { attr: "class", value: ["vcard"],
+      parent: { attr: "class", value:  ["*", "vevent"] } },
+    { attr: "class", value: ["vevent"],
+      parent: { attr: "class", value:  ["*", "vcalendar"] } },
+    { attr: "class", value: ["version"],
+      parent: { attr: "class", value:  ["hreview"] } },
+    { attr: "rel", value: [ "license" ] },
+    { attr: "rel", value: [ "nofollow" ] },
+    { attr: "rel", value: [ "tag" ] },
+    { attr: "rel", value: [
       "friend", "acquaintance", "contact", "met", "co-worker", "colleague",
       "co-resident", "neighbor", "child", "parent", "sibling", "spouse", "kin",
-      "muse", "crush", "date", "sweetheart", "me" ] },
-    xoxo: { class: [ "xoxo" ] },
-    adr: { class: [ "adr" ] },
-    geo: { class: [ "geo" ] },
-    hAtom: { class: [ "hfeed", "hentry" ] },
-    hListing: { class: [ "hlisting" ] },
-    hMedia: { class: [ "hmedia" ] },
-    hNews: { class: [ "hnews" ] },
-    hProduct: { class: [ "hproduct" ] },
-    hRecipe: { class: [ "hrecipe" ] },
-    hResume: { class: [ "hresume" ] },
-    hReview: { class: [ "hreview" ] },
-    hReviewAggregate: { class: [ "hreview-aggregate" ] },
-    relAuthor: { rel: [ "author" ] },
-    relHome: { rel: [ "home" ] },
-    relPayment: { rel: [ "payment" ] },
-  };
+      "muse", "crush", "date", "sweetheart", "me" ],
+      tags: ["a", "link"]
+    },
+  ];
 
   var has = function(el, attr, values) {
     var av = (el.getAttribute(attr)||"").toLowerCase();
-    return values.some(
-      ((attr == "class") ?
-          function(v) { return el.classList.contains(v); } :
-          // We assume full string match. FIXME?
-          function(v) { return (av == v); }
-      )
-    );
+    for(var x = 0; x < values.length; x++) {
+      if (values[x] == "*") {
+        return av;
+      }
+      if(attr == "class") {
+          if (el.classList.contains(values[x])) { return values[x]; }
+      } else {
+        // We assume full string match. FIXME?
+        if (av == values[x]) { return values[x]; }
+      }
+    }
   };
 
   var type;
 
-  forIn(v1Tests, function(name, test) {
-    forIn(test, function(attr, values) {
-      if (has(el, attr, values)) {
-        type = name;
-        // dataSet.increment(name);
-      }
-    });
+  v1Tests.forEach(function(test) {
+    var v = has(el, test.attr, test.value);
+    if (v &&
+        (!test.parent ||
+          has(el.parentNode, test.parent.attr, test.parent.value))) {
+      type = v;
+      // dataSet.increment(name);
+    }
   });
 
   // Look for "h-*" classes
@@ -175,13 +258,14 @@ var semanticHtmlType = function(e) {
     "blockquote", "body", "button", "caption", "cite", "code", "col",
     "colgroup", "command", "data", "datalist", "dd", "details", "dfn", "dir",
     "dl", "dt", "em", "embed", "fieldset", "figcaption", "figure",
-    "font", "footer", "form","h1", "h2", "h3", "h4", "h5", "h6", "header",
-    "hgroup", "hr", "input", "ins", "kbd", "keygen", "label", "legend", "li",
-    "link", "main", "mark", "menu", "meta", "nav", "noscript", "ol", "optgroup",
-    "option", "output", "p", "pre", "progress", "q", "rp", "rt", "ruby", "s",
-    "samp", "script", "section", "select", "source", "strong", "style",
-    "sub", "summary", "sup", "table", "tbody", "td", "textarea", "tfoot", "th",
-    "thead", "time", "title", "tr", "track", "ul", "var", "wbr"
+    "font", "footer", "form","h1", "h2", "h3", "h4", "h5", "h6", "head", "html",
+    "header", "hgroup", "hr", "input", "ins", "kbd", "keygen", "label",
+    "legend", "li", "link", "main", "mark", "menu", "meta", "nav", "noscript",
+    "ol", "optgroup", "option", "output", "p", "pre", "progress", "q", "rp",
+    "rt", "ruby", "s", "samp", "script", "section", "select", "source",
+    "strong", "style", "sub", "summary", "sup", "table", "tbody", "td",
+    "textarea", "tfoot", "th", "thead", "time", "title", "tr", "track", "ul",
+    "var", "wbr"
   ];
 
   var tn = e.tagName.toLowerCase();
@@ -245,7 +329,6 @@ PageData.prototype = {
           this.semantics.increment("unsemantic");
         }
       }
-
     }, this);
   }
 };
