@@ -7,24 +7,25 @@ var display = function(local, global) {
   console.dir(global);
 };
 
-var getStats = function(elements) {
-  return new PageData(elements);
-};
-
-var report = function(pageData) {
+var send = function(elementData) {
   // Send the data to our background page:
   chrome.extension.sendMessage(
-    pageData,
+    elementData,
     function(globalData) {
-      display(pageData, globalData);
+      display(elementData, globalData);
     }
   );
 };
 
-// Wait a bit for ads and Ajax stuff to come in.
-var howLong = 0;
-setTimeout(function() {
-  report(
-    getStats(
-      elements()));
-}, howLong);
+send(new ElementData(elements()));
+
+// Now register a mutation observer to capture future additions to the DOM
+// create an observer instance
+new WebKitMutationObserver(function(mutations) {
+  mutations.forEach(function(mutation) {
+    var added = toArray(mutation.addedNodes);
+    if(added.length) {
+      send(new ElementData(added));
+    }
+  });
+}).observe(document.documentElement, { subtree: true, childList: true });
