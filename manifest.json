@@ -9,6 +9,7 @@
     {
       "run_at": "document_idle",
       "matches": [ "http://*/*", "https://*/*" ],
+      "all_frames": true,
       "css": [ "meaningless.css" ],
       "js":  [ "meaningless.js", "content.js" ]
     }

@@ -87,11 +87,17 @@ var elements = function() {
 
 var schemaDotOrgType = function(e) {
   var type;
+  if (!e.parentNode) { return; }
   var av = (e.getAttribute("itemscope")||"").toLowerCase();
   if (av) {
     type = e.getAttribute("itemtype");
     if (type) {
       type = (type.split("/").pop() || "unknown");
+    }
+  } else {
+    // Look to see if we're an itemprop
+    if (schemaDotOrgType(e.parentNode)) {
+      type = e.getAttribute("itemprop");
     }
   }
   return type;
@@ -232,14 +238,25 @@ var microFormatType = function(el) {
       // dataSet.increment(name);
     }
   });
+  if (type) { return type; }
 
   // Look for "h-*" classes
+  // FIXME: this isn't right yet. We need to correctly detect the other classes
+  // of MF2 children and verify that they're parents of MF2 parents.
   toArray(el.classList).some(function(c) {
     var t = (c.indexOf("h-") == 0);
     if (t) {
       type = c;
+      return true;
     }
-    return t;
+    // Else, look to see if we're a sub-element with an h-* parent.
+    return ["p-", "u-", "dt-", "e-"].some(function(prefix) {
+      if( (c.indexOf(prefix) == 0) &&
+          (e.parentNode.classList.indexOf("h-") == 0) ) {
+        type = c;
+        return true;
+      }
+    });
   });
 
   return type;
@@ -274,7 +291,7 @@ var semanticHtmlType = function(e) {
   }
 };
 
-var PageData = function(elements) {
+var ElementData = function(elements) {
   this.total = 0;
   this.tags = new DataSet();
   this.schemaDotOrgItems = new DataSet();
@@ -286,7 +303,7 @@ var PageData = function(elements) {
     this.process(elements);
   }
 };
-PageData.prototype = {
+ElementData.prototype = {
   process: function(elements) {
     this.total = elements.length;
     elements.forEach(function(e) {

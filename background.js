@@ -3,17 +3,17 @@
 
 var debug = true;
 
-var AggregatePageData = function() {
-  PageData.call(this);
-  this.pages = 0;
+var AggregateElementData = function() {
+  ElementData.call(this);
+  this.elementSets = 0;
 };
-AggregatePageData.prototype = Object.create(PageData.prototype, {
+AggregateElementData.prototype = Object.create(ElementData.prototype, {
   aggregate: {
     enumerable: false,
     writable: true,
     configruable: true,
     value: function(data, sender) {
-      this.pages++;
+      this.elementSets ++;
       this.total += data.total;
       this.tags.merge(data.tags);
       this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
@@ -28,7 +28,7 @@ AggregatePageData.prototype = Object.create(PageData.prototype, {
     get: function() {
       return {
         total: this.total,
-        pages: this.pages,
+        elementSets: this.elementSets,
         tags: this.tags,
         schemaDotOrgItems: this.schemaDotOrgItems,
         microformatItems: this.microformatItems,
@@ -39,7 +39,7 @@ AggregatePageData.prototype = Object.create(PageData.prototype, {
   }
 });
 
-var totals = new AggregatePageData();
+var totals = new AggregateElementData();
 
 chrome.extension.onMessage.addListener(
   function(data, sender, sendResponse) {
