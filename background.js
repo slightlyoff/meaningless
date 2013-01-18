@@ -1,7 +1,7 @@
 // Aggregate stats for this session and send a message to the content scripts to
 // display the totals.
 
-var debug = true;
+var debug = false;
 
 var AggregateElementData = function() {
   ElementData.call(this);
