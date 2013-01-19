@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import webapp2
+import logging
 import jinja2
 import os
 
@@ -9,7 +10,8 @@ templateEnv = jinja2.Environment(
     os.path.join(os.path.dirname(__file__), "templates")
   )
 )
-templateEnv.globals["version"] = os.environ["CURRENT_VERSION_ID"]
+templateEnv.globals["version"] = os.environ["CURRENT_VERSION_ID"].split('.')[0]
+# logging.info(os.environ["CURRENT_VERSION_ID"])
 templateEnv.globals["app"] = os.environ["APPLICATION_ID"]
 
 class MainHandler(webapp2.RequestHandler):
