@@ -30,9 +30,11 @@
           </li>
         </ul>
       </nav>
+      {% block title %}
       <h1>{{ title | default('OH HAI') }}</h1>
+      {% endblock title %}
     </header>
-    <main>
+    <main>{% block main %}
       <p>Dolore biodiesel wolf fixie, carles retro ugh cardigan ea YOLO bushwick
       skateboard hella you probably haven't heard of them sriracha.  PBR brunch
       artisan id, farm-to-table VHS synth occaecat  labore bicycle rights master
@@ -74,7 +76,7 @@
       craft beer, mollit  aliquip flannel et minim sriracha aliqua yr deep v.
       Craft beer hoodie brunch consectetur, laborum quinoa pitchfork plaid kogi
       american apparel sapiente fixie polaroid shoreditch.</p>
-    </main>
+    {% endblock %}</main>
     <footer>
     <!--
       {{ app }}, version {{ version }}

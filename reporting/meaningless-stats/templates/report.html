@@ -1,0 +1,22 @@
+{% extends "default.html" %}
+
+{% block title %}<h1>What Your Web Is Made Of</h1>{% endblock %}
+
+{% block main %}
+  <!--
+    Raw uploaded data:
+
+      {% for p in params %}
+        {{ p }} : {{ params[p] }}
+      {% endfor %}
+
+    JSON payload:
+
+      {% for p in params %}
+        {{ p }} : {{ params[p] }}
+      {% endfor %}
+  -->
+  </pre>
+  <br>
+  {{ content }}
+{% endblock %}

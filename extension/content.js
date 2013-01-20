@@ -1,5 +1,6 @@
 "use strict";
 
+/*
 var display = function(global) {
   // Only do updates in pages that are visible in some way.
   if (!document.webkitHidden) {
@@ -7,11 +8,13 @@ var display = function(global) {
     console.dir(global);
   }
 };
+*/
 
-// If we're top-level, set up a persistent connection so we can display updates
 if (window === top) {
+  // If we're top-level, set up a persistent connection so we can notify the
+  // background page of visibility changes
   var port = chrome.extension.connect({name: "display"});
-  port.onMessage.addListener(display);
+  // port.onMessage.addListener(display);
 
   document.addEventListener("webkitvisibilitychange", function() {
     port.postMessage({ type: (document.webkitHidden) ? "hidden" : "visible" });
