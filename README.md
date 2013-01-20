@@ -1,6 +1,6 @@
 # Meaningless
 
-A Chrome Extension to tell you about the semantics of a page.
+A Chrome Extension to uncover the semantics of the web.
 
 ## What It Does
 
