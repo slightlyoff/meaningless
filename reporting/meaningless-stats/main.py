@@ -28,12 +28,14 @@ class ReportUploadHandler(webapp2.RequestHandler):
   def post(self):
     # FIXME: use self.request.get() to clamp to post() requests later.
     # FIXME: save, get a UID, and redirect to an actual reporting URL
+    data = json.loads(self.request.params["data"])
+    showReport = content.showReport
     template = templateEnv.get_template("report.html")
     self.response.write(template.render({
       # NOTE: we assume that jinja2 HTML escapes all content for us, letting us
       # not worry about XSS from this
       "params": self.request.params,
-      "content": json.loads(self.request.params["content"])
+      "content": data
     }))
 
   def get(self):
