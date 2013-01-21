@@ -1,7 +1,7 @@
 {
-  "name": "What does the markup in your page, on average, mean?",
+  "name": "Meaningless",
   "version": "0.1",
-  "description": "You keep using that word. I do not think it means what you think it means.",
+  "description": "A Chrome Extension to uncover the semantics of the web.",
   "background": {
     "scripts": [ "meaningless.js", "background.js" ]
   },
@@ -13,6 +13,12 @@
       "css": [ "meaningless.css" ],
       "js":  [ "meaningless.js", "content.js" ]
     }
+  ],
+  "permissions": [
+    "storage",
+    "http://localhost:8080/",
+    "http://meaningless-stats.appspot.com/",
+    "https://meaningless-stats.appspot.com/"
   ],
   "manifest_version": 2
 }
