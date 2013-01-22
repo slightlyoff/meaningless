@@ -1,0 +1,7 @@
+cron:
+- description: daily summary job
+  url: /tasks/daily
+  schedule: every 24 hours
+- description: monthly summary job
+  url: /task/monthly
+  schedule: 1 of month 09:00
