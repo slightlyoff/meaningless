@@ -25,6 +25,36 @@ var forIn = function(obj, func, scope) {
   return obj;
 };
 
+var rateLimited = function(func, interval) {
+  var lastRun;
+  var timer;
+  return function() {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    var a = toArray(arguments);
+    a.unshift(this);
+    var f = func.bind.apply(func, a);
+    var runner = function() {
+      timer = null;
+      lastRun = Date.now();
+      f();
+    };
+    if (!lastRun || (Date.now() - lastRun >= interval)) {
+      // If we haven't run at least once in the allotted time-frame, call
+      // immediately.
+      runner();
+    } else {
+      // Else wait until the time period has elapsed and try again.
+      var i = interval;
+      if (lastRun) {
+        i = interval - (Date.now() - lastRun);
+      }
+      timer = setTimeout(runner, i);
+    }
+  };
+};
+
 var DataSet = function() {
   this.metaData = {};
   this.data = {};

@@ -1,40 +1,30 @@
 // Aggregate stats for this session and send a message to the content scripts to
 // display the totals.
 
-var debug = false;
+var debug = 1; false;
 var serverDebug = true; // false;
 
-var WRITE_RATE = 15000; // Only write to disk every 15 seconds or so, max.
+var WRITE_RATE = 15 * 1000; // Only write to disk every 15 seconds or so, max.
+var SERVER_UPLOAD_INTERVAL = 10 * 1000; // 10s for debugging
 var REPORT_URL = (serverDebug ?
                       "http://localhost:8080" :
                       "https://meaningless-stats.appspot.com") + "/report";
 
 var storage = chrome.storage.local;
 
-var rateLimited = function(func, interval) {
-  var lastRun;
-  var timer;
-  return function() {
-    if (timer) {
-      clearTimeout(timer);
-    }
-    var f = func.bind(this);
-    var runner = function() {
-      timer = null;
-      lastRun = Date.now();
-      f();
-    };
-    if (!lastRun || (Date.now() - lastRun >= interval)) {
-      // If we haven't run at least once in the allotted time-frame, call
-      // immediately.
-      runner();
-    } else {
-      // Else wait until the time period has elapsed and try again.
-      var i = interval;
-      if (lastRun) {
-        i = interval - (Date.now() - lastRun);
+var rateLimitedInstanceMethod = function(func, interval) {
+  var instanceList = []; // FIXME: leaks!
+  var funcList = [];
+  return {
+    enumerable: false, writable: true, configruable: true,
+    value: function() {
+      var i = instanceList.indexOf(this);
+      if (i == -1) {
+        i = instanceList.length;
+        instanceList.push(this);
+        funcList[i] = rateLimited(func, interval);
       }
-      timer = setTimeout(runner, i);
+      return funcList[i].apply(this, arguments);
     }
   };
 };
@@ -50,6 +40,8 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
     writable: true,
     configruable: true,
     value: function(data, type) {
+      // FIXME(slightlyoff): we need to watch for wrap-around on aggregates as
+      // JS doesn't have bignum or 64 bit integers yet.
       this.total += data.total;
       this.tags.merge(data.tags);
       this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
@@ -105,16 +97,16 @@ PersistentAggregateElementData.prototype =
       this.persist();
     }
   },
-  persist: {
-    enumerable: false, writable: true, configruable: true,
-    value: rateLimited(function() {
+  persist: rateLimitedInstanceMethod(
+    function() {
       if (!this.key) return;
       debug && console.log("persiting", this.key, Date.now());
       var data = {};
       data[this.key] = this.summary;
       storage.set(data);
-    }, WRITE_RATE)
-  },
+    },
+    WRITE_RATE
+  ),
   rehydrate: {
     enumerable: false, writable: true, configruable: true,
     value: function() {
@@ -137,38 +129,56 @@ PersistentAggregateElementData.prototype =
 
 var totals = new PersistentAggregateElementData("totals");
 var delta = new PersistentAggregateElementData("delta");
+var clientId = null;
+storage.get("clientId", function(d) {
+  if (d["clientId"]) {
+    debug && console.log("saved clientId is:", d.clientId);
+    clientId = d.clientId;
+  }
+});
 
-var sendToServer = function() {
-  return;
+var sendToServer = rateLimited(function() {
   // Upload to our logging service and, on success, clear out the delta set.
 
   // FIXME: rate limit and schedule!
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function(e) {
-    debug && console.log(e);
     if (xhr.readyState == 4) {
+      debug && console.log(xhr.responseText);
       delta.clear();
+      var response = JSON.parse(xhr.responseText);
+      if (response.status == "success") {
+        if (!clientId && response.clientId) {
+          clientId = response.clientId;
+          storage.set({ clientId: clientId });
+        }
+      }
     }
   };
   xhr.open("POST", REPORT_URL, true);
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   xhr.send("data=" + encodeURIComponent(JSON.stringify({
     showReport: false,
+    clientId: clientId,
     delta: delta,
     totals: totals
   })));
-};
+}, SERVER_UPLOAD_INTERVAL);
 
 chrome.extension.onMessage.addListener(
   function(msg, sender) {
-    var data = msg.data;
-    if (debug) {
+    debug && console.log("got msg:", msg);
+    msg.forEach(function(body) {
+      totals.aggregate(body.data, body.type);
+      if (!debug) return;
+
+      // Debug logging below this line
       console.log(sender.tab ?
                   "from a content script:" + sender.tab.url :
                   "from the extension");
 
       // Log what we received.
-      forIn(data, function(key, set) {
+      forIn(body.data, function(key, set) {
         console.log(key, set);
         var s = set.summary;
         console.log("Total", key, ":", set.total);
@@ -187,9 +197,9 @@ chrome.extension.onMessage.addListener(
           });
         }
       });
-    }
+    });
 
-    totals.aggregate(data, msg.type);
+    // Queue for uploading.
     sendToServer();
 });
 
@@ -217,13 +227,3 @@ chrome.extension.onConnect.addListener(function(port) {
     }
   });
 });
-
-/*
-var broadcast = function(data) {
-  ports.forEach(function(p) {
-    if(p.broadcast) {
-      p.postMessage(data);
-    }
-  });
-};
-*/

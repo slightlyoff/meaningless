@@ -1,20 +1,14 @@
 "use strict";
 
-/*
-var display = function(global) {
-  // Only do updates in pages that are visible in some way.
-  if (!document.webkitHidden) {
-    console.log("global stats:");
-    console.dir(global);
-  }
-};
-*/
+// Avoid slamming the IPC channel with tons of extra traffic. Batch updates.
+var SEND_INTERVAL = 1000;
 
-if (window === top) {
+if (this.window && this.window === top) {
+  // FIXME(slightlyoff): do we still need to do this?
+
   // If we're top-level, set up a persistent connection so we can notify the
   // background page of visibility changes
   var port = chrome.extension.connect({name: "display"});
-  // port.onMessage.addListener(display);
 
   document.addEventListener("webkitvisibilitychange", function() {
     port.postMessage({ type: (document.webkitHidden) ? "hidden" : "visible" });
@@ -24,11 +18,25 @@ if (window === top) {
   // us when it HUP's.
 }
 
+var backlog = [];
+var sendToBackground = rateLimited(function() {
+  console.log("sending:", backlog);
+  chrome.extension.sendMessage(backlog);
+  backlog = [];
+}, SEND_INTERVAL);
+
+var send = function(type, data) {
+  console.log("send:", type, data);
+  backlog.push({
+    type: type,
+    data: data,
+  });
+  sendToBackground();
+};
+console.log(send);
+
 // Send the background page what we know aobut the page so far
-chrome.extension.sendMessage({
-  type: "pageload",
-  data: new ElementData(elements())
-});
+send("pageload", new ElementData(elements()));
 
 // Capture future additions to the DOM
 new WebKitMutationObserver(function(mutations) {
@@ -37,12 +45,7 @@ new WebKitMutationObserver(function(mutations) {
       var added = toArray(mutation.addedNodes).filter(function(n) {
         return n.nodeType == 1;
       });
-      if(added.length) {
-        chrome.extension.sendMessage({
-          type: "update",
-          data: new ElementData(added)
-        });
-      }
+      if(added.length) { send("update", new ElementData(added)); }
     }
   });
 }).observe(document.documentElement, { subtree: true, childList: true });
