@@ -149,9 +149,8 @@ var sendToServer = rateLimited(function() {
       delta.clear();
       var response = JSON.parse(xhr.responseText);
       if (response.status == "success") {
-          lastReport = response.reportId;
-          storage.set({ lastReport: lastReport });
-        }
+        lastReport = response.reportId;
+        storage.set({ lastReport: lastReport });
       }
     }
   };
