@@ -131,11 +131,10 @@ PersistentAggregateElementData.prototype =
 
 var totals = new PersistentAggregateElementData("totals");
 var delta = new PersistentAggregateElementData("delta");
-var clientId = null;
-storage.get("clientId", function(d) {
-  if (d["clientId"]) {
-    debug && console.log("saved clientId is:", d.clientId);
-    clientId = d.clientId;
+var lastReport = null;
+storage.get("lastReport", function(d) {
+  if (d["lastReport"]) {
+    lastReport = d.lastReport;
   }
 });
 
@@ -150,9 +149,8 @@ var sendToServer = rateLimited(function() {
       delta.clear();
       var response = JSON.parse(xhr.responseText);
       if (response.status == "success") {
-        if (!clientId && response.clientId) {
-          clientId = response.clientId;
-          storage.set({ clientId: clientId });
+          lastReport = response.reportId;
+          storage.set({ lastReport: lastReport });
         }
       }
     }
@@ -160,7 +158,6 @@ var sendToServer = rateLimited(function() {
   xhr.open("POST", REPORT_URL, true);
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   var payload = [
-    "clientId=" + encodeURIComponent(clientId||""),
     "showReport=false",
     "data=" + encodeURIComponent(JSON.stringify({
       delta: delta,
