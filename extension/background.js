@@ -33,6 +33,8 @@ var AggregateElementData = function() {
   ElementData.call(this);
   this.updates = 0;
   this.documents = 0;
+  delete this.__ElementData__;
+  this.__AggregateElementData__ = true;
 };
 AggregateElementData.prototype = Object.create(ElementData.prototype, {
   aggregate: {
@@ -157,12 +159,16 @@ var sendToServer = rateLimited(function() {
   };
   xhr.open("POST", REPORT_URL, true);
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhr.send("data=" + encodeURIComponent(JSON.stringify({
-    showReport: false,
-    clientId: clientId,
-    delta: delta,
-    totals: totals
-  })));
+  var payload = [
+    "clientId=" + encodeURIComponent(clientId||""),
+    "showReport=false",
+    "data=" + encodeURIComponent(JSON.stringify({
+      delta: delta,
+      totals: totals,
+      __ReportData__: true
+    }))
+  ].join("&");
+  xhr.send(payload);
 }, SERVER_UPLOAD_INTERVAL);
 
 chrome.extension.onMessage.addListener(

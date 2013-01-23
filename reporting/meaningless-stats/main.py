@@ -19,7 +19,6 @@ templateEnv = jinja2.Environment(
   )
 )
 templateEnv.globals["version"] = os.environ["CURRENT_VERSION_ID"].split('.')[0]
-# logging.info(os.environ["CURRENT_VERSION_ID"])
 templateEnv.globals["app"] = os.environ["APPLICATION_ID"]
 
 class BaseHandler(webapp2.RequestHandler):
@@ -35,50 +34,57 @@ class ReportUploadHandler(webapp2.RequestHandler):
     # FIXME: use self.request.get() to clamp to post() requests later.
     # FIXME: save, get a UID, and redirect to an actual reporting URL
     data = None
-    clientId = None
-    id = uuid.uuid4()
+    reportId = uuid.uuid4().hex
     if "data" in self.request.params:
-      data = json.loads(self.request.params["data"])
+      data = json.loads(self.request.params["data"],
+                        object_hook=datamodel.fromJSON)
+      data.reportId = reportId
 
     if data is None:
       return self.redirect("/global")
 
-    if "clientId" in data and data["clientId"] is not None:
-      clientId = data["clientId"]
+    if "clientId" in self.request.params:
+      data.clientId = self.request.params["clientId"]
     else:
-      clientId = uuid.uuid4().hex;
+      data.clientId = uuid.uuid4().hex;
 
-    if not "showReport" in data or data["showReport"] is True:
-      reportId = base64.urlsafe_b64encode(id.bytes)
-      # Log the data and redirect to a report.
-      return self.redirect("/report/%s" % (reportId,))
+    data.put()
 
-      """
-      template = templateEnv.get_template("report.html")
-      self.response.write(template.render({
-        # NOTE: we assume that jinja2 HTML escapes all content for us, letting us
-        # not worry about XSS from this
-        "params": self.request.params,
-        "content": data
-      }))
-      """
-    else:
+    if self.request.params["showReport"] == 'false':
       # The extension uploaded it and doesn't want us to generate a view, so
       # send back a status code
-      self.response.write(json.dumps({
+      return self.response.write(json.dumps({
         "status": "success",
         "error": None,
-        "clientId": clientId,
-        "id": id.hex,
+        "clientId": data.clientId,
+        "reportId": reportId,
       }));
+    else:
+      # reportId = base64.urlsafe_b64encode(id.bytes)
+      # Log the data and redirect to a report.
+
+      dest = "/report/%s" % (base64.urlsafe_b64encode(reportId),)
+      return self.redirect(dest)
 
   def get(self):
     return self.post()
 
 class ReportViewHandler(BaseHandler):
-  def get(self, id=0):
+  def get(self, id=''):
+    id = base64.urlsafe_b64decode(id)
+    query = datamodel.ReportData.query(
+                datamodel.ReportData.reportId == id)
+    data = query.fetch(1)[0]
+    # logging.info(data)
     template = templateEnv.get_template("report.html")
-    self.response.write(template.render({ "id": id }))
+    self.response.write(template.render({
+      # NOTE: we assume that jinja2 HTML escapes all content for us, letting us
+      # not worry about XSS from this
+      "params": self.request.params,
+      "id": id,
+      "content": data
+    }))
+    # self.response.write(template.render({ "id": id }))
 
 class TrendsHandler(BaseHandler):
   pass

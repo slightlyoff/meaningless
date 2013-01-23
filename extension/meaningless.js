@@ -106,7 +106,8 @@ DataSet.prototype = {
       data: this.data,
       total: this.total,
       metaData: this.metaData,
-      summary: this.summary
+      summary: this.summary,
+      __DataSet__: true
     };
   }
 };
@@ -328,6 +329,7 @@ var ElementData = function(elements) {
   this.microformatItems = new DataSet();
   this.ariaItems = new DataSet();
   this.semantics = new DataSet();
+  this.__ElementData__ = true;
 
   if (elements) {
     this.process(elements);
