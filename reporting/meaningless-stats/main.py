@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-# from google.appengine.ext import db
-# from google.appengine.ext import ndb
+from google.appengine.ext import ndb
 
 import jinja2
 import json
@@ -30,6 +29,7 @@ class MainHandler(BaseHandler):
   pass
 
 class ReportUploadHandler(webapp2.RequestHandler):
+
   def post(self):
     # FIXME: use self.request.get() to clamp to post() requests later.
 
@@ -45,14 +45,17 @@ class ReportUploadHandler(webapp2.RequestHandler):
     if data is None:
       return self.redirect("/global")
 
-    if data.isSane():
-      # Only persist our report after sanity checks.
-      data.put()
+    # Only persist our report after sanity checks.
+    if not data.isSane():
+      # TODO: display some sort of failure message
+      pass
 
-    if self.request.params["showReport"] == 'false':
+    future = data.put_async()
+
+    if self.request.get("showReport") == "false":
       # The extension uploaded it and doesn't want us to generate a view, so
       # send back a status code
-      return self.response.write(json.dumps({
+      self.response.write(json.dumps({
         "status": "success",
         "error": None,
         "reportId": reportId,
@@ -61,7 +64,9 @@ class ReportUploadHandler(webapp2.RequestHandler):
       # reportId = base64.urlsafe_b64encode(id.bytes)
       # Log the data and redirect to a report.
       dest = "/report/%s" % (base64.urlsafe_b64encode(reportId),)
-      return self.redirect(dest)
+      self.redirect(dest)
+
+    future.get_result()
 
   def get(self):
     return self.post()
@@ -75,8 +80,8 @@ class ReportViewHandler(BaseHandler):
       # logging.info(data)
       template = templateEnv.get_template("report.html")
       self.response.write(template.render({
-        # NOTE: we assume that jinja2 HTML escapes all content for us, letting us
-        # not worry about XSS from this
+        # NOTE: we assume that jinja2 HTML escapes all content for us, letting
+        # us not worry about XSS from this
         "params": self.request.params,
         "id": id,
         "content": data
@@ -89,7 +94,24 @@ class TrendsHandler(BaseHandler):
   pass
 
 class GlobalStatsHandler(BaseHandler):
-  pass
+
+  @ndb.tasklet
+  def globalMetrics(self):
+    metrics = datamodel.TimeSliceMetrics()
+    qry = datamodel.ReportData.query().order(datamodel.ReportData.date)
+    qit = qry.iter()
+    while (yield qit.has_next_async()):
+      metrics += qit.next()
+
+    raise ndb.Return(metrics)
+
+  def get(self):
+    # Until we get this cron'd, query the entire datas set, generate
+    # TimeSliceMetrics from it, and format them for display.
+    metrics = self.globalMetrics().get_result()
+
+    template = templateEnv.get_template("report.html")
+    self.response.write(template.render({ "content": metrics }))
 
 class ExtensionHandler(BaseHandler):
   def get(self):

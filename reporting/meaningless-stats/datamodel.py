@@ -18,20 +18,33 @@ class DataSet(ndb.Model):
         metaData: itemsArray(this.metaData),
       }
   """
-  total = ndb.IntegerProperty()
-  metaData = ndb.JsonProperty()
-  data = ndb.JsonProperty()
-  summary = ndb.JsonProperty()
+  total = ndb.IntegerProperty(default=0)
+  metaData = ndb.JsonProperty(default={})
+  data = ndb.JsonProperty(default={})
+  summary = ndb.JsonProperty(default={})
+
+  def increment(self, name, by=1):
+    self.total += by
+    if name in self.data:
+      self.data[name] += by
+    else:
+      self.data[name] = by
+
+  def incrementMeta(self, name, by=1):
+    if name in self.data:
+      self.metaData[name] += by
+    else:
+      self.metaData[name] = by
+
+  def __iadd__(self, other):
+    for k in other.data.iterkeys():
+      self.increment(k, other.data[k])
+
+    for mk in other.metaData.iterkeys():
+      self.incrementMeta(mk, other.data[mk])
 
   def isSane(self): #TODO(slightlyoff)
     return saneInteger(self.total)
-
-  @classmethod
-  def fromJSON(self, dct):
-    return DataSet(
-      total=dct["total"], metaData=dct["metaData"],
-      data=dct["data"], summary=dct["summary"]
-    )
 
 class ElementData(ndb.Model):
   """ From the JS:
@@ -43,7 +56,7 @@ class ElementData(ndb.Model):
       ariaItems: new DataSet(),
       semantics: new DataSet(),
   """
-  total = ndb.IntegerProperty()
+  total = ndb.IntegerProperty(default=0)
   tags = ndb.StructuredProperty(DataSet)
   schemaDotOrgItems = ndb.StructuredProperty(DataSet)
   microformatItems = ndb.StructuredProperty(DataSet)
@@ -59,16 +72,13 @@ class ElementData(ndb.Model):
            self.ariaItems.isSane() and \
            self.semantics.isSane()
 
-  @classmethod
-  def fromJSON(self, dct):
-    return ElementData(
-      total=dct["total"],
-      tags=dct["tags"],
-      schemaDotOrgItems=dct["schemaDotOrgItems"],
-      microformatItems=dct["microformatItems"],
-      ariaItems=dct["ariaItems"],
-      semantics=dct["semantics"]
-    )
+  def __iadd__(self, other):
+    self.total += other.total
+    self.tags += other.tags
+    self.schemaDotOrgItems += other.schemaDotOrgItems
+    self.microformatItems += other.microformatItems
+    self.ariaItems += other.ariaItems
+    self.semantics += other.semantics
 
 class AggregateElementData(ElementData):
   """ From the JS:
@@ -82,26 +92,17 @@ class AggregateElementData(ElementData):
       ariaItems: this.ariaItems,
       semantics: this.semantics,
   """
-  documents = ndb.IntegerProperty()
-  updates = ndb.IntegerProperty()
+  documents = ndb.IntegerProperty(default=0)
+  updates = ndb.IntegerProperty(default=0)
 
   def isSane(self): #TODO(slightlyoff)
     return super(AggregateElementData, self).isSane() and \
            saneInteger(self.documents) and  saneInteger(self.updates)
 
-  @classmethod
-  def fromJSON(self, dct):
-    ag = AggregateElementData(
-      documents=dct["documents"],
-      updates=dct["updates"],
-      total=dct["total"],
-      tags=dct["tags"],
-      schemaDotOrgItems=dct["schemaDotOrgItems"],
-      microformatItems=dct["microformatItems"],
-      ariaItems=dct["ariaItems"],
-      semantics=dct["semantics"]
-    )
-    return ag
+  def __iadd__(self, other):
+    super(AggregateElementData, self).__iadd__(other)
+    self.documents += other.documents
+    self.updates += other.updates
 
 class ReportData(ndb.Model):
   delta = ndb.StructuredProperty(AggregateElementData)
@@ -112,17 +113,34 @@ class ReportData(ndb.Model):
   def isSane(self):
     return self.delta.isSane() and self.totals.isSane()
 
-  @classmethod
-  def fromJSON(self, dct):
-    return ReportData(delta=dct["delta"], totals=dct["totals"])
+class TimeSliceMetrics(ndb.Model):
+  start = ndb.DateTimeProperty()
+  end = ndb.DateTimeProperty()
+  # FIXME: need a way to initialize!
+  totals = ndb.StructuredProperty(AggregateElementData)
+
+  def __iadd__(self, other):
+    if isinstance(other, ReportData):
+      if self.totals is None:
+        self.totals = AggregateElementData()
+      self.totals += other.delta
 
 def fromJSON(dct):
-  if '__DataSet__' in dct:
-    return DataSet.fromJSON(dct)
-  elif '__ElementData__' in dct:
-    return ElementData.fromJSON(dct)
-  elif '__AggregateElementData__' in dct:
-    return AggregateElementData.fromJSON(dct)
-  elif '__ReportData__' in dct:
-    return ReportData.fromJSON(dct)
-  return dct
+  inst = None
+  delKey = None
+  for key, value in dct.iteritems():
+    if key.startswith("__") and key.endswith("__"):
+      shortName = key[2:-2]
+      if shortName in globals().keys():
+        inst = globals()[shortName]()
+        delKey = key
+        break
+
+  if inst is not None:
+    del dct[delKey]
+    if "key" in dct.keys():
+      del dct["key"]
+    inst.populate(**dct)
+    return inst
+  else:
+    return dct

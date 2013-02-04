@@ -7,7 +7,10 @@
           media="all" rel="stylesheet" type="text/css">
     <!--<![endif]-->
     <link rel="stylesheet" href="/static/{{ version }}/main.css">
-    <title></title>
+
+    {% block head %}{% endblock head %}
+
+    <title>{{ title | default('OH HAI') }}</title>
   </head>
   <body>
     <header>

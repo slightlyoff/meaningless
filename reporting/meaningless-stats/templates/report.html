@@ -1,5 +1,10 @@
 {% extends "default.html" %}
 
+{% block head %}
+  <script defer src="/static/{{ version }}/d3/d3.v3.min.js"></script>
+  <script defer src="/static/{{ version }}/graphing.js"></script>
+{% endblock %}
+
 {% block title %}<h1>What Your Web Is Made Of</h1>{% endblock %}
 
 {% block main %}
