@@ -60,3 +60,7 @@ body {
   display: block;
   padding: 1em;
 }
+
+table.numberdata > tbody > tr > td:last-child {
+  text-align: right;
+}

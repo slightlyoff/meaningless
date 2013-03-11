@@ -1,6 +1,6 @@
 from google.appengine.ext import ndb
 
-from datetime import datetime
+from datetime import *
 import logging
 import sys
 
@@ -110,7 +110,7 @@ class AggregateElementData(ElementData):
 
   def isSane(self): #TODO(slightlyoff)
     return super(AggregateElementData, self).isSane() and \
-           saneInteger(self.documents) and  saneInteger(self.updates)
+           saneInteger(self.documents) and saneInteger(self.updates)
 
   def __iadd__(self, other):
     super(AggregateElementData, self).__iadd__(other)
@@ -153,8 +153,7 @@ class TimeSliceMetrics(ndb.Model):
   @classmethod
   def empty(self):
     return TimeSliceMetrics(
-      start=datetime.now(),
-      end=datetime.now(),
+      # start=datetime.now(), end=datetime.now(),
       totals=AggregateElementData.empty()
     )
 
@@ -177,3 +176,12 @@ def fromJSON(dct):
     return inst
   else:
     return dct
+
+def toJSON(data):
+  if "to_dict" in dir(data):
+    ret = {}
+    for key, value in data.to_dict().iteritems():
+      ret[key] = value
+    return ret
+  elif isinstance(data, datetime):
+    return date.isoformat(data.date())

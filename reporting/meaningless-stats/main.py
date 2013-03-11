@@ -38,8 +38,10 @@ class ReportUploadHandler(webapp2.RequestHandler):
     data = None
     reportId = uuid.uuid4().hex
     if "data" in self.request.params:
+      # logging.info(self.request.params["data"])
       data = json.loads(self.request.params["data"],
                         object_hook=datamodel.fromJSON)
+      # logging.info(data)
       data.reportId = reportId
 
     if data is None:
@@ -103,10 +105,12 @@ class GlobalStatsHandler(BaseHandler):
     qit = qry.iter()
     while (yield qit.has_next_async()):
       next = qit.next()
-      # logging.info("----------------------------------------")
-      # logging.info("| Next:")
-      logging.info(next.delta)
-      metrics.totals += next.totals
+      if next and not metrics.start:
+        metrics.start = next.date
+      # logging.info(next.delta)
+      # metrics.totals += next.totals
+      metrics.totals += next.delta
+      metrics.end = next.date
       # metrics += next
 
     raise ndb.Return(metrics)
@@ -117,7 +121,10 @@ class GlobalStatsHandler(BaseHandler):
     metrics = self.globalMetrics().get_result()
 
     template = templateEnv.get_template("report.html")
-    self.response.write(template.render({ "content": metrics }))
+    self.response.write(template.render({
+      "content": datamodel.toJSON(metrics),
+      "json": json.dumps(metrics, default=datamodel.toJSON)
+    }))
 
 class ExtensionHandler(BaseHandler):
   def get(self):

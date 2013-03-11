@@ -25,7 +25,118 @@
   <br>
   {{ id }}
   <br>
+  <!--
   {{ content }}
+  -->
+  {{ content.start }} &mdash; {{ content.end}}
+
+  <h3>Stats</h3>
+  <table class="numberdata">
+    <tbody>
+      <tr>
+        <td>Documents</td>
+        <td>{{ content.totals.documents }}</td>
+      </tr>
+      <tr>
+        <td>Dynamic Page Updates</td>
+        <td>{{ content.totals.updates }}</td>
+      </tr>
+      <tr>
+        <td>Total Elements</td>
+        <td>{{ content.totals.total }}</td>
+      </tr>
+      <tr>
+        <td>Augmented Semantics</td>
+        <td>{{ content.totals.semantics.data.augmented }}</td>
+      </tr>
+ </tbody>
+  </table>
+
+  <h3>What Semantics Are Being Used In The Wild?</h3>
+  <table class="numberdata">
+    <tbody>
+      <tr>
+        <td>WAI-ARIA</td>
+        <td>{{ content.totals.ariaItems.total }}</td>
+      </tr>
+      <tr>
+        <td>Microformats</td>
+        <td>{{ content.totals.microformatItems.total }}</td>
+      </tr>
+      <tr>
+        <td>Schema.org</td>
+        <td>{{ content.totals.schemaDotOrgItems.total }}</td>
+      </tr>
+      <tr>
+        <td>Naked HTML</td>
+        <td>{{ content.totals.semantics.data.native }}</td>
+      </tr>
+      <tr>
+        <td>Unsemantic (<code>div</code>, <code>span</code>, etc.)</td>
+        <td>{{ content.totals.semantics.data.unsemantic }}</td>
+      </tr>
+     </tbody>
+  </table>
+
+  <h3>The Most Common Semantic HTML Elements</h3>
+  <table class="numberdata">
+    <tbody>
+      {% for x in content.totals.tags.data %}
+      <tr>
+        <td><code>&lt;{{ x }}&gt;</code></td>
+        <td>{{ content.totals.tags.data[x] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>The Most Common WAI-ARIA Roles</h3>
+  <table class="numberdata">
+    <tbody>
+      {% for x in content.totals.ariaItems.data %}
+      <tr>
+        <td>{{ x }}</td>
+        <td>{{ content.totals.ariaItems.data[x] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>The Most Common Microformats</h3>
+  <table class="numberdata">
+    <tbody>
+      {% for x in content.totals.microformatItems.data %}
+      <tr>
+        <td><code>&lt;{{ x }}&gt;</code></td>
+        <td>{{ content.totals.microformatItems.data[x] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>The Most Common Schema.org Types</h3>
+  <table class="numberdata">
+    <tbody>
+      {% for x in content.totals.schemaDotOrgItems.data %}
+      <tr>
+        <td><code>&lt;{{ x }}&gt;</code></td>
+        <td>{{ content.totals.schemaDotOrgItems.data[x] }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <br>
+  <br>
+  {% for x in content.totals %}
+    {{ x }} : {{ content.totals[x] }}
+    <br>
+  {% endfor %}
+  <br>
+  <script>
+    var data = {{ json }};
+    // FIXME do graphing here!
+  </script>
   <br>
   {{ error }}
 {% endblock %}
