@@ -47,7 +47,7 @@ var queueToSendUpdate = function(added) {
   timer = setTimeout(function() {
     send("update", new ElementData(_queue));
     _queue.length = 0;
-  }, 100);
+  }, 500);
 };
 
 // Capture future additions to the DOM
