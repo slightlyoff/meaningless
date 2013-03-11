@@ -149,7 +149,6 @@ var sendToServer = rateLimited(function() {
       debug && console.log(xhr.responseText);
       // console.log("clearing the delta");
       delta.clear();
-      // console.log(JSON.stringify(delta));
       var response = JSON.parse(xhr.responseText);
       if (response.status == "success") {
         lastReport = response.reportId;
@@ -175,7 +174,7 @@ chrome.extension.onMessage.addListener(
     debug && console.log("got msg:", msg);
     msg.forEach(function(body) {
       totals.aggregate(body.data, body.type);
-      // delta.aggregate(body.data, body.type);
+      delta.aggregate(body.data, body.type);
       if (!debug) return;
 
       // Debug logging below this line
