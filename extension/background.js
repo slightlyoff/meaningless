@@ -140,13 +140,16 @@ storage.get("lastReport", function(d) {
 
 var sendToServer = rateLimited(function() {
   // Upload to our logging service and, on success, clear out the delta set.
+  // console.log("sending delta to the server:", JSON.stringify(delta));
 
   // FIXME: rate limit and schedule!
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function(e) {
     if (xhr.readyState == 4) {
       debug && console.log(xhr.responseText);
+      // console.log("clearing the delta");
       delta.clear();
+      // console.log(JSON.stringify(delta));
       var response = JSON.parse(xhr.responseText);
       if (response.status == "success") {
         lastReport = response.reportId;
@@ -172,6 +175,7 @@ chrome.extension.onMessage.addListener(
     debug && console.log("got msg:", msg);
     msg.forEach(function(body) {
       totals.aggregate(body.data, body.type);
+      // delta.aggregate(body.data, body.type);
       if (!debug) return;
 
       // Debug logging below this line

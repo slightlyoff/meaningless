@@ -20,23 +20,35 @@ if (this.window && this.window === top) {
 
 var backlog = [];
 var sendToBackground = rateLimited(function() {
-  console.log("sending:", backlog);
+  // console.log("sending:", backlog);
   chrome.extension.sendMessage(backlog);
   backlog = [];
 }, SEND_INTERVAL);
 
 var send = function(type, data) {
-  console.log("send:", type, data);
+  // console.log("send:", type, data);
   backlog.push({
     type: type,
     data: data,
   });
   sendToBackground();
 };
-console.log(send);
 
 // Send the background page what we know aobut the page so far
 send("pageload", new ElementData(elements()));
+
+var timer = null;
+var _queue = [];
+var queueToSendUpdate = function(added) {
+  if (timer) {
+    clearTimeout(timer);
+  }
+  Array.prototype.push.apply(_queue, added);
+  timer = setTimeout(function() {
+    send("update", new ElementData(_queue));
+    _queue.length = 0;
+  }, 100);
+};
 
 // Capture future additions to the DOM
 new WebKitMutationObserver(function(mutations) {
@@ -45,7 +57,10 @@ new WebKitMutationObserver(function(mutations) {
       var added = toArray(mutation.addedNodes).filter(function(n) {
         return n.nodeType == 1;
       });
-      if(added.length) { send("update", new ElementData(added)); }
+      if(added.length) {
+        queueToSendUpdate(added);
+        // send("update", new ElementData(added));
+      }
     }
   });
-}).observe(document.documentElement, { subtree: true, childList: true });
+}).observe(document.documentElement, { childList: true, subtree: true });

@@ -59,6 +59,7 @@ class ReportUploadHandler(webapp2.RequestHandler):
         "status": "success",
         "error": None,
         "reportId": reportId,
+        "reportURL": "/report/%s" % (base64.urlsafe_b64encode(reportId),)
       }));
     else:
       # reportId = base64.urlsafe_b64encode(id.bytes)
@@ -97,11 +98,16 @@ class GlobalStatsHandler(BaseHandler):
 
   @ndb.tasklet
   def globalMetrics(self):
-    metrics = datamodel.TimeSliceMetrics()
+    metrics = datamodel.TimeSliceMetrics.empty()
     qry = datamodel.ReportData.query().order(datamodel.ReportData.date)
     qit = qry.iter()
     while (yield qit.has_next_async()):
-      metrics += qit.next()
+      next = qit.next()
+      # logging.info("----------------------------------------")
+      # logging.info("| Next:")
+      logging.info(next.delta)
+      metrics.totals += next.totals
+      # metrics += next
 
     raise ndb.Return(metrics)
 

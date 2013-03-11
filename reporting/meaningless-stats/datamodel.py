@@ -1,5 +1,6 @@
 from google.appengine.ext import ndb
 
+from datetime import datetime
 import logging
 import sys
 
@@ -41,10 +42,21 @@ class DataSet(ndb.Model):
       self.increment(k, other.data[k])
 
     for mk in other.metaData.iterkeys():
-      self.incrementMeta(mk, other.data[mk])
+      self.incrementMeta(mk, other.metaData[mk])
+
+    return self
 
   def isSane(self): #TODO(slightlyoff)
     return saneInteger(self.total)
+
+  @classmethod
+  def empty(self):
+    return DataSet(
+      data={},
+      metaData={},
+      summary={},
+      total=0
+    )
 
 class ElementData(ndb.Model):
   """ From the JS:
@@ -79,6 +91,7 @@ class ElementData(ndb.Model):
     self.microformatItems += other.microformatItems
     self.ariaItems += other.ariaItems
     self.semantics += other.semantics
+    return self
 
 class AggregateElementData(ElementData):
   """ From the JS:
@@ -103,6 +116,20 @@ class AggregateElementData(ElementData):
     super(AggregateElementData, self).__iadd__(other)
     self.documents += other.documents
     self.updates += other.updates
+    return self
+
+  @classmethod
+  def empty(self):
+    return AggregateElementData(
+      ariaItems = DataSet.empty(),
+      microformatItems  = DataSet.empty(),
+      schemaDotOrgItems = DataSet.empty(),
+      semantics         = DataSet.empty(),
+      tags              = DataSet.empty(),
+      documents = 0,
+      updates = 0,
+      total = 0
+    )
 
 class ReportData(ndb.Model):
   delta = ndb.StructuredProperty(AggregateElementData)
@@ -120,10 +147,16 @@ class TimeSliceMetrics(ndb.Model):
   totals = ndb.StructuredProperty(AggregateElementData)
 
   def __iadd__(self, other):
-    if isinstance(other, ReportData):
-      if self.totals is None:
-        self.totals = AggregateElementData()
-      self.totals += other.delta
+    self.totals += other.delta
+    return self
+
+  @classmethod
+  def empty(self):
+    return TimeSliceMetrics(
+      start=datetime.now(),
+      end=datetime.now(),
+      totals=AggregateElementData.empty()
+    )
 
 def fromJSON(dct):
   inst = None
