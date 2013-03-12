@@ -61,6 +61,17 @@ body {
   padding: 1em;
 }
 
-table.numberdata > tbody > tr > td:last-child {
+table.numberdata > tbody > tr > td:nth-child(n+2) {
   text-align: right;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.browser text {
+  text-anchor: end;
 }

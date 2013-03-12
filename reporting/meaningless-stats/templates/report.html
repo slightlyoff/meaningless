@@ -1,8 +1,6 @@
 {% extends "default.html" %}
 
 {% block head %}
-  <script defer src="/static/{{ version }}/d3/d3.v3.min.js"></script>
-  <script defer src="/static/{{ version }}/graphing.js"></script>
 {% endblock %}
 
 {% block title %}<h1>What Your Web Is Made Of</h1>{% endblock %}
@@ -28,7 +26,9 @@
   <!--
   {{ content }}
   -->
-  {{ content.start }} &mdash; {{ content.end}}
+  {{ content.start.strftime('%Y-%m-%d') }}
+  &ndash;
+  {{ content.end.strftime('%Y-%m-%d') }}
 
   <h3>Stats</h3>
   <table class="numberdata">
@@ -58,22 +58,27 @@
       <tr>
         <td>WAI-ARIA</td>
         <td>{{ content.totals.ariaItems.total }}</td>
+        <td>{{ (content.totals.ariaItems.total / content.totals.total * 100) // 1 }}%</td>
       </tr>
       <tr>
         <td>Microformats</td>
         <td>{{ content.totals.microformatItems.total }}</td>
+        <td>{{ (content.totals.microformatItems.total / content.totals.total * 100) // 1 }}%</td>
       </tr>
       <tr>
         <td>Schema.org</td>
         <td>{{ content.totals.schemaDotOrgItems.total }}</td>
+        <td>{{ (content.totals.microformatItems.total /  content.totals.total * 100) // 1 }}%</td>
       </tr>
       <tr>
         <td>Naked HTML</td>
         <td>{{ content.totals.semantics.data.native }}</td>
+        <td>{{ (content.totals.semantics.data.native / content.totals.total * 100) // 1 }}%</td>
       </tr>
       <tr>
         <td>Unsemantic (<code>div</code>, <code>span</code>, etc.)</td>
         <td>{{ content.totals.semantics.data.unsemantic }}</td>
+        <td>{{ (content.totals.semantics.data.unsemantic / content.totals.total * 100) // 1 }}%</td>
       </tr>
      </tbody>
   </table>
@@ -81,10 +86,10 @@
   <h3>The Most Common Semantic HTML Elements</h3>
   <table class="numberdata">
     <tbody>
-      {% for x in content.totals.tags.data %}
+      {% for key, value in content.totals.tags.data|dictsort(by='value')|reverse %}
       <tr>
-        <td><code>&lt;{{ x }}&gt;</code></td>
-        <td>{{ content.totals.tags.data[x] }}</td>
+        <td><code>&lt;{{ key }}&gt;</code></td>
+        <td>{{ value }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -93,22 +98,22 @@
   <h3>The Most Common WAI-ARIA Roles</h3>
   <table class="numberdata">
     <tbody>
-      {% for x in content.totals.ariaItems.data %}
+     {% for key, value in content.totals.ariaItems.data|dictsort(by='value')|reverse %}
       <tr>
-        <td>{{ x }}</td>
-        <td>{{ content.totals.ariaItems.data[x] }}</td>
+        <td><code>{{ key }}</code></td>
+        <td>{{ value }}</td>
       </tr>
       {% endfor %}
-    </tbody>
+   </tbody>
   </table>
 
   <h3>The Most Common Microformats</h3>
   <table class="numberdata">
     <tbody>
-      {% for x in content.totals.microformatItems.data %}
+     {% for key, value in content.totals.microformatItems.data|dictsort(by='value')|reverse %}
       <tr>
-        <td><code>&lt;{{ x }}&gt;</code></td>
-        <td>{{ content.totals.microformatItems.data[x] }}</td>
+        <td><code>{{ key }}</code></td>
+        <td>{{ value }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -117,26 +122,21 @@
   <h3>The Most Common Schema.org Types</h3>
   <table class="numberdata">
     <tbody>
-      {% for x in content.totals.schemaDotOrgItems.data %}
+     {% for key, value in content.totals.schemaDotOrgItems.data|dictsort(by='value')|reverse %}
       <tr>
-        <td><code>&lt;{{ x }}&gt;</code></td>
-        <td>{{ content.totals.schemaDotOrgItems.data[x] }}</td>
+        <td><code>{{ key }}</code></td>
+        <td>{{ value }}</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 
-  <br>
-  <br>
-  {% for x in content.totals %}
-    {{ x }} : {{ content.totals[x] }}
-    <br>
-  {% endfor %}
-  <br>
-  <script>
-    var data = {{ json }};
-    // FIXME do graphing here!
+  <!-- FIXME: *sigh*...make async. -->
+  <script defer src="/static/{{ version }}/d3/d3.v3.min.js"></script>
+  <script defer src="/static/{{ version }}/graphing.js"></script>
+  <script defer >
+    graphData({{ json }});
   </script>
-  <br>
+
   {{ error }}
 {% endblock %}

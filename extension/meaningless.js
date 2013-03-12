@@ -119,8 +119,7 @@ var elements = function() {
 var schemaDotOrgType = function(e) {
   var type;
   if (!e.parentNode) { return; }
-  var av = (e.getAttribute("itemscope")||"").toLowerCase();
-  if (av) {
+  if (e.hasAttribute("itemscope")) {
     type = e.getAttribute("itemtype");
     if (type) {
       type = (type.split("/").pop() || "unknown");
