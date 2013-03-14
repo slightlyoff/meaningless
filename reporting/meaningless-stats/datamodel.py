@@ -68,12 +68,14 @@ class ElementData(ndb.Model):
       ariaItems: new DataSet(),
       semantics: new DataSet(),
   """
-  total = ndb.IntegerProperty(default=0)
-  tags = ndb.StructuredProperty(DataSet)
-  schemaDotOrgItems = ndb.StructuredProperty(DataSet)
-  microformatItems = ndb.StructuredProperty(DataSet)
-  ariaItems = ndb.StructuredProperty(DataSet)
-  semantics = ndb.StructuredProperty(DataSet)
+  total               = ndb.IntegerProperty(default=0)
+  tags                = ndb.StructuredProperty(DataSet)
+  schemaDotOrgItems   = ndb.StructuredProperty(DataSet)
+  microformatItems    = ndb.StructuredProperty(DataSet)
+  ariaItems           = ndb.StructuredProperty(DataSet)
+  semantics           = ndb.StructuredProperty(DataSet)
+  webComponentItems   = ndb.StructuredProperty(DataSet)
+  nativeSemanticItems = ndb.StructuredProperty(DataSet)
 
   def isSane(self): #TODO(slightlyoff)
     return saneInteger(self.total) and \
@@ -82,15 +84,19 @@ class ElementData(ndb.Model):
            self.microformatItems.isSane() and \
            self.semantics.isSane() and \
            self.ariaItems.isSane() and \
+           self.webComponentItems.isSane() and \
+           self.nativeSemanticItems.isSane() and \
            self.semantics.isSane()
 
   def __iadd__(self, other):
-    self.total += other.total
-    self.tags += other.tags
-    self.schemaDotOrgItems += other.schemaDotOrgItems
-    self.microformatItems += other.microformatItems
-    self.ariaItems += other.ariaItems
-    self.semantics += other.semantics
+    self.total               += other.total
+    self.tags                += other.tags
+    self.schemaDotOrgItems   += other.schemaDotOrgItems
+    self.microformatItems    += other.microformatItems
+    self.ariaItems           += other.ariaItems
+    self.webComponentItems   += other.webComponentItems
+    self.nativeSemanticItems += other.nativeSemanticItems
+    self.semantics           += other.semantics
     return self
 
 class AggregateElementData(ElementData):
@@ -103,6 +109,8 @@ class AggregateElementData(ElementData):
       schemaDotOrgItems: this.schemaDotOrgItems,
       microformatItems: this.microformatItems,
       ariaItems: this.ariaItems,
+      webComponentItems: this.webComponentItems,
+      nativeSemanticItems: this.nativeSemanticItems,
       semantics: this.semantics,
   """
   documents = ndb.IntegerProperty(default=0)
@@ -121,11 +129,13 @@ class AggregateElementData(ElementData):
   @classmethod
   def empty(self):
     return AggregateElementData(
-      ariaItems = DataSet.empty(),
-      microformatItems  = DataSet.empty(),
-      schemaDotOrgItems = DataSet.empty(),
-      semantics         = DataSet.empty(),
-      tags              = DataSet.empty(),
+      ariaItems           = DataSet.empty(),
+      microformatItems    = DataSet.empty(),
+      schemaDotOrgItems   = DataSet.empty(),
+      nativeSemanticItems = DataSet.empty(),
+      webComponentItems   = DataSet.empty(),
+      semantics           = DataSet.empty(),
+      tags                = DataSet.empty(),
       documents = 0,
       updates = 0,
       total = 0

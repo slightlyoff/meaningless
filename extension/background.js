@@ -1,8 +1,8 @@
 // Aggregate stats for this session and send a message to the content scripts to
 // display the totals.
 
-var debug = 1; false;
-var serverDebug = true; // false;
+var debug = false;
+var serverDebug = false; // false;
 
 var WRITE_RATE = 15 * 1000; // Only write to disk every 15 seconds or so, max.
 var SERVER_UPLOAD_INTERVAL = 10 * 1000; // 10s for debugging
@@ -49,6 +49,8 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
       this.schemaDotOrgItems.merge(data.schemaDotOrgItems);
       this.microformatItems.merge(data.microformatItems);
       this.ariaItems.merge(data.ariaItems);
+      this.webComponentItems.merge(data.webComponentItems);
+      this.nativeSemanticItems.merge(data.nativeSemanticItems);
       this.semantics.merge(data.semantics);
       if (type == "pageload") {
         this.documents++;
@@ -76,6 +78,8 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
         schemaDotOrgItems: this.schemaDotOrgItems,
         microformatItems: this.microformatItems,
         ariaItems: this.ariaItems,
+        webComponentItems: this.webComponentItems,
+        nativeSemanticItems: this.nativeSemanticItems,
         semantics: this.semantics,
       };
     }

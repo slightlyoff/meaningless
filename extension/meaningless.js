@@ -321,12 +321,24 @@ var semanticHtmlType = function(e) {
   }
 };
 
+var webComponentType = function(e) {
+  var tn = e.tagName.toLowerCase();
+  if (tn.indexOf("-") >= 0) {
+    console.log(tn);
+    return tn;
+  }
+}
+
+// FIXME(slightlyoff): need to detect web components!
+
 var ElementData = function(elements) {
   this.total = 0;
   this.tags = new DataSet();
   this.schemaDotOrgItems = new DataSet();
   this.microformatItems = new DataSet();
   this.ariaItems = new DataSet();
+  this.webComponentItems = new DataSet();
+  this.nativeSemanticItems = new DataSet();
   this.semantics = new DataSet();
   this.__ElementData__ = true;
 
@@ -361,13 +373,19 @@ ElementData.prototype = {
         this.ariaItems.increment(at);
       }
 
+      var wct = webComponentType(e);
+      if (wct) {
+        this.webComponentItems.increment(wct);
+      }
+
       // Keep a running tally of the semantic content of pages: if semantic,
       // where does it come from?
-      var augmentedSemantics = (mft || sdot || at);
+      var augmentedSemantics = (mft || sdot || at || wct);
       var nativeSemantics = semanticHtmlType(e);
       if (nativeSemantics) {
+        this.nativeSemanticItems.increment(nativeSemantics);
         if (augmentedSemantics) {
-          this.semantics.increment("native + augmented");
+          this.semantics.increment("semanticAugmented");
         } else {
           this.semantics.increment("native");
         }

@@ -12,7 +12,9 @@ import base64
 
 import datamodel
 
+
 templateEnv = jinja2.Environment(
+  extensions = ['jinja2.ext.loopcontrols'],
   loader = jinja2.FileSystemLoader(
     os.path.join(os.path.dirname(__file__), "templates")
   )
@@ -80,7 +82,6 @@ class ReportViewHandler(BaseHandler):
       id = base64.urlsafe_b64decode(id)
       query = datamodel.ReportData.query(datamodel.ReportData.reportId == id)
       data = query.fetch(1)[0]
-      # logging.info(data)
       template = templateEnv.get_template("report.html")
       self.response.write(template.render({
         # NOTE: we assume that jinja2 HTML escapes all content for us, letting
@@ -123,7 +124,10 @@ class GlobalStatsHandler(BaseHandler):
     template = templateEnv.get_template("report.html")
     self.response.write(template.render({
       "content": datamodel.toJSON(metrics),
-      "json": json.dumps(metrics, default=datamodel.toJSON)
+      "json": json.dumps(metrics,
+                         default=datamodel.toJSON,
+                         sort_keys=True,
+                         indent=2)
     }))
 
 class ExtensionHandler(BaseHandler):

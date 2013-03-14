@@ -3,56 +3,53 @@
 {% block head %}
 {% endblock %}
 
-{% block title %}<h1>What Your Web Is Made Of</h1>{% endblock %}
+{% block title %}<h1>What The Web Is Made Of</h1>{% endblock %}
 
 {% block main %}
-  <!--
-    Raw uploaded data:
-
-      {% for p in params %}
-        {{ p }} : {{ params[p] }}
-      {% endfor %}
-
-    JSON payload:
-
-      {% for p in params %}
-        {{ p }} : {{ params[p] }}
-      {% endfor %}
-  -->
-  </pre>
-  <br>
-  {{ id }}
-  <br>
-  <!--
-  {{ content }}
-  -->
   {{ content.start.strftime('%Y-%m-%d') }}
   &ndash;
   {{ content.end.strftime('%Y-%m-%d') }}
 
-  <h3>Stats</h3>
+  <h3>Global Stats</h3>
   <table class="numberdata">
     <tbody>
       <tr>
-        <td>Documents</td>
+        <td>Elements Encountered</td>
+        <td>{{ content.totals.total }}</td>
+      </tr>
+      <tr>
+        <td>Documents Visited</td>
         <td>{{ content.totals.documents }}</td>
       </tr>
       <tr>
         <td>Dynamic Page Updates</td>
         <td>{{ content.totals.updates }}</td>
       </tr>
-      <tr>
-        <td>Total Elements</td>
-        <td>{{ content.totals.total }}</td>
-      </tr>
-      <tr>
-        <td>Augmented Semantics</td>
-        <td>{{ content.totals.semantics.data.augmented }}</td>
-      </tr>
- </tbody>
+   </tbody>
   </table>
 
-  <h3>What Semantics Are Being Used In The Wild?</h3>
+  <h3>How Semantic Is The Markup?</h3>
+  <table class="numberdata">
+    <tbody>
+      <tr>
+        <td>Unsemantic (<code>div</code>, <code>span</code>, etc.)</td>
+        <td>{{ content.totals.semantics.data.unsemantic }}</td>
+        <td>{{ (content.totals.semantics.data.unsemantic / content.totals.total * 100) // 1 }}%</td>
+      </tr>
+      <tr>
+        <td>Semantic HTML (no extended semantics)</td>
+        <td>{{ content.totals.semantics.data.native }}</td>
+        <td>{{ (content.totals.semantics.data.native / content.totals.total * 100) // 1 }}%</td>
+      </tr>
+      <tr>
+        <td>Augmented Semantic HTML  (HTML + MF/S.O/ARIA/WC)</td>
+        <td>{{ content.totals.semantics.data.semanticAugmented }}</td>
+        <td>{{ (content.totals.semantics.data.semanticAugmented / content.totals.total * 100) // 1 }}%</td>
+      </tr>
+     </tbody>
+  </table>
+
+  <h3>What Are HTML Semantics Augmented With?</h3>
   <table class="numberdata">
     <tbody>
       <tr>
@@ -71,22 +68,19 @@
         <td>{{ (content.totals.microformatItems.total /  content.totals.total * 100) // 1 }}%</td>
       </tr>
       <tr>
-        <td>Naked HTML</td>
-        <td>{{ content.totals.semantics.data.native }}</td>
-        <td>{{ (content.totals.semantics.data.native / content.totals.total * 100) // 1 }}%</td>
-      </tr>
-      <tr>
-        <td>Unsemantic (<code>div</code>, <code>span</code>, etc.)</td>
-        <td>{{ content.totals.semantics.data.unsemantic }}</td>
-        <td>{{ (content.totals.semantics.data.unsemantic / content.totals.total * 100) // 1 }}%</td>
+        <td>Web Components</td>
+        <td>{{ content.totals.webComponentItems.total }}</td>
+        <td>{{ (content.totals.webComponentItems.total /  content.totals.total * 100) // 1 }}%</td>
       </tr>
      </tbody>
   </table>
 
+
   <h3>The Most Common Semantic HTML Elements</h3>
   <table class="numberdata">
     <tbody>
-      {% for key, value in content.totals.tags.data|dictsort(by='value')|reverse %}
+      {% for key, value in content.totals.nativeSemanticItems.data|dictsort(by='value')|reverse  %}
+      {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>&lt;{{ key }}&gt;</code></td>
         <td>{{ value }}</td>
@@ -99,6 +93,7 @@
   <table class="numberdata">
     <tbody>
      {% for key, value in content.totals.ariaItems.data|dictsort(by='value')|reverse %}
+     {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
         <td>{{ value }}</td>
@@ -111,6 +106,7 @@
   <table class="numberdata">
     <tbody>
      {% for key, value in content.totals.microformatItems.data|dictsort(by='value')|reverse %}
+     {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
         <td>{{ value }}</td>
@@ -123,6 +119,20 @@
   <table class="numberdata">
     <tbody>
      {% for key, value in content.totals.schemaDotOrgItems.data|dictsort(by='value')|reverse %}
+     {%- if loop.index >= 10 %}{% break %}{% endif %}
+      <tr>
+        <td><code>{{ key }}</code></td>
+        <td>{{ value }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>The Most Common Web Components</h3>
+  <table class="numberdata">
+    <tbody>
+     {% for key, value in content.totals.webComponentItems.data|dictsort(by='value')|reverse %}
+     {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
         <td>{{ value }}</td>
@@ -132,11 +142,13 @@
   </table>
 
   <!-- FIXME: *sigh*...make async. -->
+  <!--
   <script defer src="/static/{{ version }}/d3/d3.v3.min.js"></script>
   <script defer src="/static/{{ version }}/graphing.js"></script>
   <script defer >
     graphData({{ json }});
   </script>
+  -->
 
   {{ error }}
 {% endblock %}
