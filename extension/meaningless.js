@@ -324,7 +324,6 @@ var semanticHtmlType = function(e) {
 var webComponentType = function(e) {
   var tn = e.tagName.toLowerCase();
   if (tn.indexOf("-") >= 0) {
-    console.log(tn);
     return tn;
   }
 }
