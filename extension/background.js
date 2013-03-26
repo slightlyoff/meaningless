@@ -2,12 +2,12 @@
 // display the totals.
 
 var debug = false;
-var serverDebug = false; // false;
+var serverDebug = false;
 
 var WRITE_RATE = 15 * 1000; // Only write to disk every 15 seconds or so, max.
-var SERVER_UPLOAD_INTERVAL = (serverDebug ? // 10s for debugging, 15 min in prod
+var SERVER_UPLOAD_INTERVAL = (serverDebug ? // 10s for debugging, 1hr in prod
                                 10 * 1000 :
-                                15 * 60 * 1000);
+                                60 * 60 * 1000);
 var REPORT_URL = (serverDebug ?
                       "http://localhost:8080" :
                       "https://meaningless-stats.appspot.com") + "/report";

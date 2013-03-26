@@ -349,9 +349,11 @@ ElementData.prototype = {
   process: function(elements) {
     this.total = elements.length;
     elements.forEach(function(e) {
+      /*
       if (!e.tagName) {
         console.info(e, elements);
       }
+      */
       var tn = e.tagName.toLowerCase()
       this.tags.increment(tn);
       this.tags.incrementMeta(
