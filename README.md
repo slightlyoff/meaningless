@@ -38,36 +38,30 @@ content really semantic? We think not.
 
 ## What The Service Collects
 
-About once a day, Meaningless checks in with a reporting service to provide
-anonymous, aggregate statistics about the total number of elements seen, their
-classificiations, and raw detailed breakdowns of the most common types of
-semantics. None of this is traceable to an individual, and no personally
-identifiable information is collected or logged. Uninstalling the extension and
-re-installing it will beging reporting with a new random identifier, and no
-persistent information is authenticated. Further, no information beyond the
-broad types of semantics of the markup on pages is reported about the sites you
-visit. No URLs are logged and no session information can leak.
+About once a day, the Meaningless extension checks in with the Meanginless
+reporting service and uploads anonymous, aggregate statistics about the total
+number of elements seen, their classificiations, and detailed breakdowns of the
+most common types of semantics. None of this is traceable to an individual, and
+no personally identifiable information is collected or logged (insofar as
+AppEngine enables disabling of logging). No information beyond semantic
+composition of individual elements on pages is reported about the sites you
+visit. No URLs are logged and no session is ever leaked. If you want to verify
+all of this for yourself, you're in the right place: the extension and reporting
+system are all Open Source and via this repository.
 
 ## Will Meaningless Slow Down My Web Browsing?
 
 No.
 
-The extension has been carefully designed not to impact page loading or
-meaningfully affect overall browsing performance. It uses several techniques to ensure great performance, even for the tab-collecting among us:
+The extension has been carefully architected not to impact page loading or affect
+overall browsing performance. Yes, it must do some work to charachterize the
+elements on pages, but it uses several techniques to ensure good performance,
+even for the tab-collecting among us:
 
-  * Meaningless is injected into pages only when the browser isn't doing
-    anything more important, and thanks to [Mutation
-    Observers](https://developer.mozilla.org/en-US/docs/DOM/MutationObserver) it
-    can follow along as pages change over time without impacting the performance
-    of other scripts on the page.
-  * The extension is designed to do minimum work. No bloated libraries, no
-    overly-expensive algorithms, the code is tuned to only do the minimum needed
-    to charachterize the semantic content of a page.
-  * Uploading of stats to the Meaningless reporting service is off-loaded to a
-    background task which keeps your pages responsive.
-  * Using the [Page Visibility API](http://www.w3.org/TR/page-visibility/),
-    Meaningless ensures that no extra work is done on pages that would otherwise
-    be "put to sleep" by the browser.
+  * The extension does the minimum necessary. No bloated libraries or boilerplate code; the code is tuned to do the minimum needed to charachterize the semantic content of a page.
+  * Meaningless only runs when the browser isn't doing more important work for you. Thanks to [Mutation Observers](https://developer.mozilla.org/en-US/docs/DOM/MutationObserver) it can follow along as pages change over time without impacting the performance of other scripts on the page.
+  * Storage of aggregate statistics and uploading to the reporting service is off-loaded to a background task, keepings your tabs responsive.
+  * Communication between your tabs and the background process is throttled and messages are batched to ensure that your browsing remains responsive.
 
 As with any code that is run on each page, there *is* some cost, but thanks to
 defensive coding, Meaningless shouldn't ever slow down your browsing. If you
