@@ -130,16 +130,15 @@ class GlobalStatsHandler(BaseHandler):
                          indent=2)
     }))
 
-class ExtensionHandler(BaseHandler):
+class PrivacyHandler(BaseHandler):
   def get(self):
-    template = templateEnv.get_template("extension.html")
+    template = templateEnv.get_template("privacy.html")
     self.response.write(template.render({}))
 
-class PrivacyHandler(BaseHandler):
-  pass
-
 class AboutHandler(BaseHandler):
-  pass
+  def get(self):
+    template = templateEnv.get_template("about.html")
+    self.response.write(template.render({}))
 
 class TaskHandler(BaseHandler):
   def get(self, name="daily"):
@@ -151,7 +150,6 @@ app = webapp2.WSGIApplication([
   (r"/report/(.+)", ReportViewHandler),
   ("/trends", TrendsHandler),
   ("/global", GlobalStatsHandler),
-  ("/extension", ExtensionHandler),
   ("/privacy", PrivacyHandler),
   ("/about", AboutHandler),
   ("/task/(.+)", TaskHandler),
