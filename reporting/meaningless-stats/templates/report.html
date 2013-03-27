@@ -6,6 +6,11 @@
 {% block title %}<h1>What The Web Is Made Of</h1>{% endblock %}
 
 {% block main %}
+{% with %}
+  {% set totals = content.totals %}
+  {% set total = totals.total %}
+  {% set semantics = content.totals.semantics %}
+
   {{ content.start.strftime('%Y-%m-%d') }}
   &ndash;
   {{ content.end.strftime('%Y-%m-%d') }}
@@ -15,15 +20,15 @@
     <tbody>
       <tr>
         <td>Elements Encountered</td>
-        <td>{{ content.totals.total }}</td>
+        <td>{{ "{:,}".format(total) }}</td>
       </tr>
       <tr>
         <td>Documents Visited</td>
-        <td>{{ content.totals.documents }}</td>
+        <td>{{ "{:,}".format(totals.documents) }}</td>
       </tr>
       <tr>
         <td>Dynamic Page Updates</td>
-        <td>{{ content.totals.updates }}</td>
+        <td>{{ "{:,}".format(totals.updates) }}</td>
       </tr>
    </tbody>
   </table>
@@ -33,18 +38,18 @@
     <tbody>
       <tr>
         <td>Unsemantic (<code>div</code>, <code>span</code>, etc.)</td>
-        <td>{{ content.totals.semantics.data.unsemantic }}</td>
-        <td>{{ (content.totals.semantics.data.unsemantic / content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(semantics.data.unsemantic) }}</td>
+        <td>{{ "{:.2%}".format(semantics.data.unsemantic / total) }}%</td>
       </tr>
       <tr>
         <td>Semantic HTML (no extended semantics)</td>
-        <td>{{ content.totals.semantics.data.native }}</td>
-        <td>{{ (content.totals.semantics.data.native / content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(semantics.data.native) }}</td>
+        <td>{{ "{:.2%}".format(semantics.data.native / total) }}%</td>
       </tr>
       <tr>
         <td>Augmented Semantic HTML  (HTML + MF/S.O/ARIA/WC)</td>
-        <td>{{ content.totals.semantics.data.semanticAugmented }}</td>
-        <td>{{ (content.totals.semantics.data.semanticAugmented / content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(semantics.data.semanticAugmented) }}</td>
+        <td>{{ "{:.2%}".format(semantics.data.semanticAugmented / total) }}%</td>
       </tr>
      </tbody>
   </table>
@@ -54,23 +59,23 @@
     <tbody>
       <tr>
         <td>WAI-ARIA</td>
-        <td>{{ content.totals.ariaItems.total }}</td>
-        <td>{{ (content.totals.ariaItems.total / content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(totals.ariaItems.total) }}</td>
+        <td>{{ "{:.2%}".format(totals.ariaItems.total / total) }}%</td>
       </tr>
       <tr>
         <td>Microformats</td>
-        <td>{{ content.totals.microformatItems.total }}</td>
-        <td>{{ (content.totals.microformatItems.total / content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(totals.microformatItems.total) }}</td>
+        <td>{{ "{:.2%}".format(totals.microformatItems.total / total) }}%</td>
       </tr>
       <tr>
         <td>Schema.org</td>
-        <td>{{ content.totals.schemaDotOrgItems.total }}</td>
-        <td>{{ (content.totals.microformatItems.total /  content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(totals.schemaDotOrgItems.total) }}</td>
+        <td>{{ "{:.2%}".format(totals.microformatItems.total /  total) }}%</td>
       </tr>
       <tr>
         <td>Web Components</td>
-        <td>{{ content.totals.webComponentItems.total }}</td>
-        <td>{{ (content.totals.webComponentItems.total /  content.totals.total * 100) // 1 }}%</td>
+        <td>{{ "{:,}".format(totals.webComponentItems.total) }}</td>
+        <td>{{ "{:.2%}".format(totals.webComponentItems.total / total) }}%</td>
       </tr>
      </tbody>
   </table>
@@ -79,11 +84,11 @@
   <h3>The Most Common Semantic HTML Elements</h3>
   <table class="numberdata">
     <tbody>
-      {% for key, value in content.totals.nativeSemanticItems.data|dictsort(by='value')|reverse  %}
+      {% for key, value in totals.nativeSemanticItems.data|dictsort(by='value')|reverse  %}
       {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>&lt;{{ key }}&gt;</code></td>
-        <td>{{ value }}</td>
+        <td>{{ "{:,}".format(value) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -92,11 +97,11 @@
   <h3>The Most Common WAI-ARIA Roles</h3>
   <table class="numberdata">
     <tbody>
-     {% for key, value in content.totals.ariaItems.data|dictsort(by='value')|reverse %}
+     {% for key, value in totals.ariaItems.data|dictsort(by='value')|reverse %}
      {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
-        <td>{{ value }}</td>
+        <td>{{ "{:,}".format(value) }}</td>
       </tr>
       {% endfor %}
    </tbody>
@@ -105,11 +110,11 @@
   <h3>The Most Common Microformats</h3>
   <table class="numberdata">
     <tbody>
-     {% for key, value in content.totals.microformatItems.data|dictsort(by='value')|reverse %}
+     {% for key, value in totals.microformatItems.data|dictsort(by='value')|reverse %}
      {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
-        <td>{{ value }}</td>
+        <td>{{ "{:,}".format(value) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -118,11 +123,11 @@
   <h3>The Most Common Schema.org Types</h3>
   <table class="numberdata">
     <tbody>
-     {% for key, value in content.totals.schemaDotOrgItems.data|dictsort(by='value')|reverse %}
+     {% for key, value in totals.schemaDotOrgItems.data|dictsort(by='value')|reverse %}
      {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
-        <td>{{ value }}</td>
+        <td>{{ "{:,}".format(value) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -131,11 +136,11 @@
   <h3>The Most Common Custom Elements</h3>
   <table class="numberdata">
     <tbody>
-     {% for key, value in content.totals.webComponentItems.data|dictsort(by='value')|reverse %}
+     {% for key, value in totals.webComponentItems.data|dictsort(by='value')|reverse %}
      {%- if loop.index >= 10 %}{% break %}{% endif %}
       <tr>
         <td><code>{{ key }}</code></td>
-        <td>{{ value }}</td>
+        <td>{{ "{:,}".format(value) }}</td>
       </tr>
       {% endfor %}
     </tbody>
@@ -151,4 +156,5 @@
   -->
 
   {{ error }}
+{% endwith %}
 {% endblock %}

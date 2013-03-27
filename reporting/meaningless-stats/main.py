@@ -14,7 +14,7 @@ import datamodel
 
 
 templateEnv = jinja2.Environment(
-  extensions = ['jinja2.ext.loopcontrols'],
+  extensions = ['jinja2.ext.loopcontrols', 'jinja2.ext.with_'],
   loader = jinja2.FileSystemLoader(
     os.path.join(os.path.dirname(__file__), "templates")
   )
@@ -84,6 +84,7 @@ class ReportViewHandler(BaseHandler):
       data = query.fetch(1)[0]
       template = templateEnv.get_template("report.html")
       self.response.write(template.render({
+        "title": "Your Upload",
         # NOTE: we assume that jinja2 HTML escapes all content for us, letting
         # us not worry about XSS from this
         "params": self.request.params,
@@ -123,6 +124,7 @@ class GlobalStatsHandler(BaseHandler):
 
     template = templateEnv.get_template("report.html")
     self.response.write(template.render({
+      "title": "Meaningless Global Stats",
       "content": datamodel.toJSON(metrics),
       "json": json.dumps(metrics,
                          default=datamodel.toJSON,
