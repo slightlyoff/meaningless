@@ -64,6 +64,7 @@ body {
 table.numberdata > tbody > tr > td:nth-child(n+2) {
   text-align: right;
   font-family: Consolas, monospace;
+  padding-left: 1em;
 }
 
 .axis path,

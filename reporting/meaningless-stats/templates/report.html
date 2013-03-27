@@ -38,17 +38,17 @@
     <tbody>
       <tr>
         <td>Unsemantic (<code>div</code>, <code>span</code>, etc.)</td>
-        <td>{{ "{:.2%}".format(semantics.data.unsemantic / total) }}%</td>
+        <td>{{ "{:.2%}".format(semantics.data.unsemantic / total) }}</td>
         <td>{{ "{:,}".format(semantics.data.unsemantic) }}</td>
       </tr>
       <tr>
         <td>Semantic HTML (no extended semantics)</td>
-        <td>{{ "{:.2%}".format(semantics.data.native / total) }}%</td>
+        <td>{{ "{:.2%}".format(semantics.data.native / total) }}</td>
         <td>{{ "{:,}".format(semantics.data.native) }}</td>
       </tr>
       <tr>
         <td>Augmented Semantic HTML  (HTML + MF/S.O/ARIA/WC)</td>
-        <td>{{ "{:.2%}".format(semantics.data.semanticAugmented / total) }}%</td>
+        <td>{{ "{:.2%}".format(semantics.data.semanticAugmented / total) }}</td>
         <td>{{ "{:,}".format(semantics.data.semanticAugmented) }}</td>
       </tr>
      </tbody>
@@ -59,22 +59,22 @@
     <tbody>
       <tr>
         <td>WAI-ARIA</td>
-        <td>{{ "{:.2%}".format(totals.ariaItems.total / total) }}%</td>
+        <td>{{ "{:.2%}".format(totals.ariaItems.total / total) }}</td>
         <td>{{ "{:,}".format(totals.ariaItems.total) }}</td>
       </tr>
       <tr>
         <td>Microformats</td>
-        <td>{{ "{:.2%}".format(totals.microformatItems.total / total) }}%</td>
+        <td>{{ "{:.2%}".format(totals.microformatItems.total / total) }}</td>
         <td>{{ "{:,}".format(totals.microformatItems.total) }}</td>
       </tr>
       <tr>
         <td>Schema.org</td>
-        <td>{{ "{:.2%}".format(totals.microformatItems.total /  total) }}%</td>
+        <td>{{ "{:.2%}".format(totals.microformatItems.total /  total) }}</td>
         <td>{{ "{:,}".format(totals.schemaDotOrgItems.total) }}</td>
       </tr>
       <tr>
         <td>Web Components</td>
-        <td>{{ "{:.2%}".format(totals.webComponentItems.total / total) }}%</td>
+        <td>{{ "{:.2%}".format(totals.webComponentItems.total / total) }}</td>
         <td>{{ "{:,}".format(totals.webComponentItems.total) }}</td>
       </tr>
      </tbody>
