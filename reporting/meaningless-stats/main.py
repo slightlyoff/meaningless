@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
 from google.appengine.ext import ndb
+from google.appengine.api import memcache
 
+import base64
+import datetime
 import jinja2
 import json
 import logging
 import os
 import uuid
 import webapp2
-import base64
 
 import datamodel
 
+EXTENSION_VERSION = "0.2"
 
 templateEnv = jinja2.Environment(
   extensions = ['jinja2.ext.loopcontrols', 'jinja2.ext.with_'],
@@ -37,6 +40,12 @@ class ReportUploadHandler(webapp2.RequestHandler):
 
     # FIXME: need better abuse controls rate limiting. A Memcache of recent seen
     # client IPs is probably a reasonable first step.
+    if self.request.params["version"] != EXTENSION_VERSION:
+      return self.response.write(json.dumps({
+        "status": "failure",
+        "error": "Extension version mismatch."
+      }));
+
     data = None
     reportId = uuid.uuid4().hex
     if "data" in self.request.params:
@@ -82,15 +91,20 @@ class ReportViewHandler(BaseHandler):
       id = base64.urlsafe_b64decode(id)
       query = datamodel.ReportData.query(datamodel.ReportData.reportId == id)
       data = query.fetch(1)[0]
-      template = templateEnv.get_template("report.html")
-      self.response.write(template.render({
-        "title": "Your Upload",
-        # NOTE: we assume that jinja2 HTML escapes all content for us, letting
-        # us not worry about XSS from this
-        "params": self.request.params,
-        "id": id,
-        "content": data
-      }))
+      if self.request.get("type") == "json":
+        self.response.headers['Content-Type'] = "application/json"
+        self.response.write(json.dumps(data, default=datamodel.toJSON,
+                                       sort_keys=True, indent=2))
+      else:
+        template = templateEnv.get_template("report.html")
+        self.response.write(template.render({
+          "title": "Your Upload",
+          # NOTE: we assume that jinja2 HTML escapes all content for us, letting
+          # us not worry about XSS from this
+          "params": self.request.params,
+          "id": id,
+          "content": data
+        }))
     except:
       template = templateEnv.get_template("report.html")
       self.response.write(template.render({ "error": "Report not found!" }))
@@ -103,6 +117,7 @@ class GlobalStatsHandler(BaseHandler):
   @ndb.tasklet
   def globalMetrics(self):
     metrics = datamodel.TimeSliceMetrics.empty()
+    metrics.date = datetime.date.today()
     qry = datamodel.ReportData.query().order(datamodel.ReportData.date)
     qit = qry.iter()
     while (yield qit.has_next_async()):
@@ -120,17 +135,30 @@ class GlobalStatsHandler(BaseHandler):
   def get(self):
     # Until we get this cron'd, query the entire datas set, generate
     # TimeSliceMetrics from it, and format them for display.
-    metrics = self.globalMetrics().get_result()
+    today = datetime.date.today().isoformat()
+    # logging.info(today)
+    metrics = memcache.get('%s:global_stats' % today)
+    # logging.info(metrics.created)
+    if metrics is None:
+      metrics = self.globalMetrics().get_result()
+      # Cache for 2 hours
+      memcache.set('%s:global_stats' % today, metrics, 60 * 60 * 2)
 
-    template = templateEnv.get_template("report.html")
-    self.response.write(template.render({
-      "title": "Meaningless Global Stats",
-      "content": datamodel.toJSON(metrics),
-      "json": json.dumps(metrics,
-                         default=datamodel.toJSON,
-                         sort_keys=True,
-                         indent=2)
-    }))
+    # logging.info(metrics)
+    jsonMetricsString = json.dumps(metrics, default=datamodel.toJSON,
+                                   sort_keys=True, indent=2)
+
+    if self.request.get("type") == "json":
+      self.response.headers['Content-Type'] = "application/json"
+      self.response.write(jsonMetricsString)
+    else:
+      template = templateEnv.get_template("report.html")
+      self.response.write(template.render({
+        "title": "Meaningless Global Stats",
+        "content": datamodel.toJSON(metrics),
+        "json": jsonMetricsString
+      }))
+
 
 class PrivacyHandler(BaseHandler):
   def get(self):

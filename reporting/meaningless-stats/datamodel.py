@@ -155,6 +155,7 @@ class TimeSliceMetrics(ndb.Model):
   end = ndb.DateTimeProperty()
   # FIXME: need a way to initialize!
   totals = ndb.StructuredProperty(AggregateElementData)
+  date = ndb.DateProperty(auto_now_add=True)
 
   def __iadd__(self, other):
     self.totals += other.delta
@@ -195,3 +196,5 @@ def toJSON(data):
     return ret
   elif isinstance(data, datetime):
     return date.isoformat(data.date())
+  elif isinstance(data, date):
+    return data.isoformat()
