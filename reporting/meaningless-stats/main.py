@@ -40,7 +40,7 @@ class ReportUploadHandler(webapp2.RequestHandler):
 
     # FIXME: need better abuse controls rate limiting. A Memcache of recent seen
     # client IPs is probably a reasonable first step.
-    if self.request.params["version"] != EXTENSION_VERSION:
+    if self.request.get("version", None) != EXTENSION_VERSION:
       return self.response.write(json.dumps({
         "status": "failure",
         "error": "Extension version mismatch."
