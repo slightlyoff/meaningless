@@ -12,6 +12,8 @@ var REPORT_URL = (serverDebug ?
                       "http://localhost:8080" :
                       "https://meaningless-stats.appspot.com") + "/report";
 
+var VERSION = "0.2";
+
 var storage = chrome.storage.local;
 
 var rateLimitedInstanceMethod = function(func, interval) {
@@ -32,13 +34,21 @@ var rateLimitedInstanceMethod = function(func, interval) {
 };
 
 var AggregateElementData = function() {
-  ElementData.call(this);
-  this.updates = 0;
-  this.documents = 0;
-  delete this.__ElementData__;
+  this.clear();
   this.__AggregateElementData__ = true;
 };
 AggregateElementData.prototype = Object.create(ElementData.prototype, {
+  clear: {
+    enumerable: false,
+    writable: true,
+    configruable: true,
+    value: function(data, type) {
+      this.updates = 0;
+      this.documents = 0;
+      ElementData.prototype.clear.call(this);
+    }
+  },
+
   aggregate: {
     enumerable: false,
     writable: true,
@@ -90,7 +100,6 @@ AggregateElementData.prototype = Object.create(ElementData.prototype, {
 
 var PersistentAggregateElementData = function(keyname) {
   AggregateElementData.call(this);
-
   if (keyname) {
     this.key = keyname;
     this.rehydrate();
@@ -129,8 +138,10 @@ PersistentAggregateElementData.prototype =
   clear: {
     enumerable: false, writable: true, configruable: true,
     value: function() {
+      AggregateElementData.prototype.clear.call(this);
       if (!this.key) return;
       storage.remove(this.key);
+      this.persist();
     }
   }
 });
@@ -151,12 +162,15 @@ var sendToServer = rateLimited(function() {
   // FIXME: rate limit and schedule!
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function(e) {
-    if (xhr.readyState == 4) {
+    // debug && console.log(xhr);
+    // if (xhr.readyState == 4 && xhr.status == 200) {
+    if (xhr.readyState == 4 && xhr.status == 200) {
       debug && console.log(xhr.responseText);
-      // console.log("clearing the delta");
-      delta.clear();
       var response = JSON.parse(xhr.responseText);
       if (response.status == "success") {
+        // Don't clobber the delta data unless uploading was a success
+        debug && console.log("clearing the delta");
+        delta.clear();
         lastReport = response.reportId;
         storage.set({ lastReport: lastReport });
       }
@@ -166,6 +180,7 @@ var sendToServer = rateLimited(function() {
   xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
   var payload = [
     "showReport=false",
+    "version=" + VERSION,
     "data=" + encodeURIComponent(JSON.stringify({
       delta: delta,
       totals: totals,

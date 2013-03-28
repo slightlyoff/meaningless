@@ -1,6 +1,6 @@
 {
   "name": "Meaningless",
-  "version": "0.1",
+  "version": "0.2",
   "description": "A Chrome Extension to uncover the semantics of the web.",
   "background": {
     "scripts": [ "meaningless.js", "background.js" ]

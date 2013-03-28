@@ -331,14 +331,7 @@ var webComponentType = function(e) {
 // FIXME(slightlyoff): need to detect web components!
 
 var ElementData = function(elements) {
-  this.total = 0;
-  this.tags = new DataSet();
-  this.schemaDotOrgItems = new DataSet();
-  this.microformatItems = new DataSet();
-  this.ariaItems = new DataSet();
-  this.webComponentItems = new DataSet();
-  this.nativeSemanticItems = new DataSet();
-  this.semantics = new DataSet();
+  this.clear();
   this.__ElementData__ = true;
 
   if (elements) {
@@ -346,6 +339,17 @@ var ElementData = function(elements) {
   }
 };
 ElementData.prototype = {
+  clear: function() {
+    this.total = 0;
+    this.tags = new DataSet();
+    this.schemaDotOrgItems = new DataSet();
+    this.microformatItems = new DataSet();
+    this.ariaItems = new DataSet();
+    this.webComponentItems = new DataSet();
+    this.nativeSemanticItems = new DataSet();
+    this.semantics = new DataSet();
+  },
+
   process: function(elements) {
     this.total = elements.length;
     elements.forEach(function(e) {
