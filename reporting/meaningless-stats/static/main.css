@@ -25,7 +25,7 @@ nav > ul {
 }
 
 nav > ul > li {
-  font: 400 1.3em/1.5em "Lato";
+  font: 300 1.3em/1.5em "Lato";
   float: left;
   vertical-align: baseline;
   padding: 0 1em;
@@ -59,6 +59,10 @@ body {
 
   display: block;
   padding: 1em;
+}
+
+body > main > h2 {
+  font: 300 2em/2em "Lato";
 }
 
 table.numberdata > tbody > tr > td:nth-child(n+2) {
