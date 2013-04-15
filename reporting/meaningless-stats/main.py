@@ -180,6 +180,7 @@ app = webapp2.WSGIApplication([
   (r"/report/(.+)", ReportViewHandler),
   ("/trends", TrendsHandler),
   ("/global", GlobalStatsHandler),
+  ("/global/", GlobalStatsHandler),
   ("/privacy", PrivacyHandler),
   ("/about", AboutHandler),
   ("/task/(.+)", TaskHandler),
