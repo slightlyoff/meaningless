@@ -3,7 +3,7 @@ cron:
   url: /global
   schedule: every 1 hours synchronized
 - description: daily summary job
-  url: /tasks/daily
+  url: /task/daily
   schedule: every 24 hours
 - description: monthly summary job
   url: /task/monthly
